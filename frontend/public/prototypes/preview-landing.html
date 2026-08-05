@@ -159,13 +159,34 @@
     text-align:center; padding:10px 0; border:1px solid var(--line); font-size:12px; color:var(--offwhite);
   }
   .day-chip.active{background:var(--navy); border-color:var(--navy-light); color:var(--white);}
-  .slots-row{display:grid; grid-template-columns:repeat(4,1fr); gap:8px;}
+  .slots-row{display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-bottom:20px;}
   .slot{
     text-align:center; padding:10px 0; border:1px solid var(--line); font-size:12px; color:var(--offwhite);
-    cursor:default;
+    cursor:default; transition:all 0.2s;
   }
   .slot.selected{background:var(--white); color:var(--black); border-color:var(--white);}
   .slot.taken{opacity:0.28; text-decoration:line-through;}
+  .bm-loading{grid-column:1/-1; font-size:12px; color:var(--offwhite); padding:10px 0;}
+  .bm-label{display:block; font-size:10px; letter-spacing:0.12em; text-transform:uppercase; color:var(--steel); margin:16px 0 8px;}
+  .bm-input{
+    width:100%; background:var(--charcoal); border:1px solid var(--line); color:var(--white);
+    padding:10px 12px; font-family:'Jost',sans-serif; font-size:13px; font-weight:300;
+  }
+  .bm-input:focus{outline:none; border-color:var(--navy-light);}
+  .bm-row{display:flex; gap:10px; margin-bottom:20px;}
+  .bm-row .bm-input{margin:0;}
+  .bm-btn-secondary{
+    white-space:nowrap; background:transparent; border:1px solid var(--navy-light); color:var(--white);
+    padding:0 18px; font-size:11px; letter-spacing:0.06em; text-transform:uppercase; cursor:pointer;
+  }
+  .bm-client-fields{display:grid; gap:10px; margin-top:6px;}
+  .bm-client-fields .cta-btn{border:none; background:var(--navy-light); text-align:center; margin-top:6px;}
+  .bm-message{font-size:12px; margin-top:14px; min-height:16px;}
+  .bm-message.success{color:#7fb88f;}
+  .bm-message.error{color:#c97f7f;}
+  .api-status{font-size:10px; display:flex; align-items:center; gap:6px;}
+  .api-status .dot{width:6px; height:6px; border-radius:50%; display:inline-block; background:#7fb88f;}
+  .api-status.offline .dot{background:#c97f7f;}
 
   /* FOOTER */
   footer{padding:80px 8vw 40px; text-align:center; border-top:1px solid var(--line);}
@@ -305,11 +326,29 @@
     </div>
     <div class="booking-mock">
       <div class="bm-head">
-        <h4 data-i18n="booking.mockTitle">Diseño de sonrisa · Agosto</h4>
-        <span data-i18n="booking.mockNote">Vista previa</span>
+        <h4 data-i18n="booking.mockTitle">Agenda tu cita</h4>
+        <span id="apiStatus" class="api-status"><span class="dot"></span><span id="apiStatusText">…</span></span>
       </div>
-      <div class="days-row" id="days-row"></div>
+
+      <label class="bm-label" data-i18n="booking.serviceLabel">Servicio</label>
+      <select id="serviceSelect" class="bm-input"></select>
+
+      <label class="bm-label" data-i18n="booking.dateLabel">Fecha</label>
+      <div class="bm-row">
+        <input type="date" id="dateInput" class="bm-input" />
+        <button class="bm-btn-secondary" id="checkAvailabilityBtn" data-i18n="booking.checkBtn">Ver horarios</button>
+      </div>
+
       <div class="slots-row" id="slots-row"></div>
+
+      <div id="clientFields" class="bm-client-fields" style="display:none;">
+        <input type="text" id="clientName" class="bm-input" data-i18n-placeholder="booking.namePlaceholder" placeholder="Nombre completo" />
+        <input type="email" id="clientEmail" class="bm-input" data-i18n-placeholder="booking.emailPlaceholder" placeholder="Email" />
+        <input type="tel" id="clientPhone" class="bm-input" data-i18n-placeholder="booking.phonePlaceholder" placeholder="Teléfono" />
+        <button class="cta-btn" id="confirmBtn" data-i18n="booking.confirmBtn">Confirmar cita</button>
+      </div>
+
+      <div id="bookingMessage" class="bm-message"></div>
     </div>
   </div>
 </section>
@@ -341,7 +380,15 @@ const i18n = {
     "vision.text":"Ser el referente en estética dental y facial en la región, reconocido por resultados naturales, tecnología de vanguardia y una experiencia de paciente sin comparación.",
     "booking.eyebrow":"Agenda tu cita","booking.title":"Reserva en minutos, sin llamadas",
     "booking.text":"Elige el servicio, revisa la disponibilidad real del doctor y confirma tu cita. Recibirás confirmación y recordatorio automático.",
-    "booking.cta":"Ver disponibilidad completa","booking.mockTitle":"Diseño de sonrisa · Agosto","booking.mockNote":"Vista previa",
+    "booking.cta":"Ver disponibilidad completa","booking.mockTitle":"Agenda tu cita",
+    "booking.serviceLabel":"Servicio","booking.dateLabel":"Fecha","booking.checkBtn":"Ver horarios",
+    "booking.namePlaceholder":"Nombre completo","booking.emailPlaceholder":"Email","booking.phonePlaceholder":"Teléfono",
+    "booking.confirmBtn":"Confirmar cita","booking.noDate":"Elige una fecha primero.",
+    "booking.loadingSlots":"Buscando horarios...","booking.connError":"No se pudo conectar. Intenta de nuevo.",
+    "booking.noSlots":"No hay horarios configurados ese día.",
+    "booking.missingFields":"Completa nombre, email y elige un horario.","booking.sending":"Enviando...",
+    "booking.success":"¡Cita solicitada! Te contactaremos para confirmar.","booking.failPrefix":"No se pudo agendar: ",
+    "booking.apiOnline":"Conectado al servidor","booking.apiOffline":"Conectando con el servidor…",
     "footer.tag":"Estética Dental y Facial","footer.whatsapp":"WhatsApp","footer.instagram":"Instagram","footer.location":"Bogotá, Colombia",
     "footer.note":"Prototipo visual — de aquí seguimos construyendo el sistema completo."
   },
@@ -359,44 +406,189 @@ const i18n = {
     "vision.text":"To be the regional benchmark in dental and facial aesthetics, recognized for natural results, leading-edge technology, and an unmatched patient experience.",
     "booking.eyebrow":"Book your visit","booking.title":"Reserve in minutes, no calls needed",
     "booking.text":"Choose the service, check the doctor's real availability, and confirm your appointment. You'll get instant confirmation and an automatic reminder.",
-    "booking.cta":"View full availability","booking.mockTitle":"Smile design · August","booking.mockNote":"Preview",
+    "booking.cta":"View full availability","booking.mockTitle":"Book your visit",
+    "booking.serviceLabel":"Service","booking.dateLabel":"Date","booking.checkBtn":"Check availability",
+    "booking.namePlaceholder":"Full name","booking.emailPlaceholder":"Email","booking.phonePlaceholder":"Phone",
+    "booking.confirmBtn":"Confirm appointment","booking.noDate":"Pick a date first.",
+    "booking.loadingSlots":"Checking availability...","booking.connError":"Could not connect. Try again.",
+    "booking.noSlots":"No slots configured for that day.",
+    "booking.missingFields":"Fill in name, email, and pick a time slot.","booking.sending":"Sending...",
+    "booking.success":"Appointment requested! We'll reach out to confirm.","booking.failPrefix":"Could not book: ",
+    "booking.apiOnline":"Connected to server","booking.apiOffline":"Connecting to server…",
     "footer.tag":"Dental & Facial Aesthetics","footer.whatsapp":"WhatsApp","footer.instagram":"Instagram","footer.location":"Bogotá, Colombia",
     "footer.note":"Visual prototype — from here we keep building out the full system."
   }
 };
 
-const servicesData = {
-  es:[
-    ["01","Diseño de sonrisa","Planeación digital estética para transformar la armonía de tu sonrisa."],
-    ["02","Blanqueamiento dental","Procedimientos profesionales para un tono natural y luminoso."],
-    ["03","Ortodoncia invisible","Alineadores transparentes para resultados discretos y precisos."],
-    ["04","Implantes dentales","Reemplazo funcional y estético con tecnología de precisión."],
-    ["05","Rejuvenecimiento facial","Tratamientos no invasivos que realzan tus rasgos naturales."],
-    ["06","Armonización facial","Equilibrio y proporción facial con técnicas mínimamente invasivas."]
-  ],
-  en:[
-    ["01","Smile design","Digital aesthetic planning to transform your smile's harmony."],
-    ["02","Teeth whitening","Professional procedures for a natural, luminous tone."],
-    ["03","Invisible orthodontics","Clear aligners for discreet, precise results."],
-    ["04","Dental implants","Functional and aesthetic replacement with precision technology."],
-    ["05","Facial rejuvenation","Non-invasive treatments that enhance your natural features."],
-    ["06","Facial harmonization","Facial balance and proportion with minimally invasive techniques."]
-  ]
-};
+// URL de tu backend real en Render
+const BACKEND_URL = 'https://dr-jimenez-platform.onrender.com';
 
-const dayLabels = {es:["Lun","Mar","Mié","Jue","Vie","Sáb","Dom"], en:["Mon","Tue","Wed","Thu","Fri","Sat","Sun"]};
+// Datos de respaldo por si el backend está dormido (plan gratis de Render) o sin internet
+const FALLBACK_SERVICES = [
+  {id:1, name_es:'Diseño de sonrisa', name_en:'Smile design', description_es:'Planeación digital estética para transformar la armonía de tu sonrisa.', description_en:"Digital aesthetic planning to transform your smile's harmony."},
+  {id:2, name_es:'Blanqueamiento dental', name_en:'Teeth whitening', description_es:'Procedimientos profesionales para un tono natural y luminoso.', description_en:'Professional procedures for a natural, luminous tone.'},
+  {id:3, name_es:'Ortodoncia invisible', name_en:'Invisible orthodontics', description_es:'Alineadores transparentes para resultados discretos y precisos.', description_en:'Clear aligners for discreet, precise results.'},
+  {id:4, name_es:'Implantes dentales', name_en:'Dental implants', description_es:'Reemplazo funcional y estético con tecnología de precisión.', description_en:'Functional and aesthetic replacement with precision technology.'},
+  {id:5, name_es:'Rejuvenecimiento facial', name_en:'Facial rejuvenation', description_es:'Tratamientos no invasivos que realzan tus rasgos naturales.', description_en:'Non-invasive treatments that enhance your natural features.'},
+  {id:6, name_es:'Armonización facial', name_en:'Facial harmonization', description_es:'Equilibrio y proporción facial con técnicas mínimamente invasivas.', description_en:'Facial balance and proportion with minimally invasive techniques.'}
+];
+
+let SERVICES = FALLBACK_SERVICES;
+let currentLang = 'es';
+let selectedDate = null;
+let selectedSlot = null;
+
 const bookLabel = {es:"Agendar", en:"Book"};
 
 function renderServices(lang){
   const grid = document.getElementById('service-grid');
   grid.innerHTML = '';
-  servicesData[lang].forEach(([num,title,desc])=>{
+  SERVICES.forEach((s, i)=>{
     const card = document.createElement('div');
     card.className = 'service-card';
-    card.innerHTML = `<div class="service-num">${num}</div><h3>${title}</h3><p>${desc}</p><a href="#agendar" class="service-book">${bookLabel[lang]} →</a>`;
+    const num = String(i+1).padStart(2,'0');
+    card.innerHTML = `<div class="service-num">${num}</div><h3>${s['name_'+lang]}</h3><p>${s['description_'+lang] || ''}</p><a href="#agendar" class="service-book">${bookLabel[lang]} →</a>`;
     grid.appendChild(card);
   });
 }
+
+function populateServiceSelect(lang){
+  const select = document.getElementById('serviceSelect');
+  if(!select) return;
+  select.innerHTML = '';
+  SERVICES.forEach(s=>{
+    const opt = document.createElement('option');
+    opt.value = s.id;
+    opt.textContent = s['name_'+lang];
+    select.appendChild(opt);
+  });
+}
+
+function setApiStatus(online){
+  const wrap = document.getElementById('apiStatus');
+  const text = document.getElementById('apiStatusText');
+  if(!wrap) return;
+  wrap.classList.toggle('offline', !online);
+  text.textContent = i18n[currentLang][online ? 'booking.apiOnline' : 'booking.apiOffline'];
+}
+
+async function fetchServices(){
+  try{
+    const res = await fetch(`${BACKEND_URL}/api/services`);
+    if(!res.ok) throw new Error('bad response');
+    const data = await res.json();
+    if(Array.isArray(data) && data.length > 0){
+      SERVICES = data;
+      setApiStatus(true);
+    } else {
+      throw new Error('empty');
+    }
+  }catch(err){
+    console.warn('No se pudo conectar al backend, usando datos de respaldo.', err);
+    SERVICES = FALLBACK_SERVICES;
+    setApiStatus(false);
+  }
+  renderServices(currentLang);
+  populateServiceSelect(currentLang);
+}
+
+async function checkAvailability(){
+  const date = document.getElementById('dateInput').value;
+  const slotsRow = document.getElementById('slots-row');
+  document.getElementById('clientFields').style.display = 'none';
+  document.getElementById('bookingMessage').textContent = '';
+  selectedSlot = null;
+
+  if(!date){
+    slotsRow.innerHTML = `<div class="bm-loading">${i18n[currentLang]['booking.noDate']}</div>`;
+    return;
+  }
+  selectedDate = date;
+  slotsRow.innerHTML = `<div class="bm-loading">${i18n[currentLang]['booking.loadingSlots']}</div>`;
+
+  try{
+    const res = await fetch(`${BACKEND_URL}/api/availability?date=${date}`);
+    if(!res.ok) throw new Error('bad response');
+    const data = await res.json();
+    setApiStatus(true);
+    renderSlots(data.slots || []);
+  }catch(err){
+    setApiStatus(false);
+    slotsRow.innerHTML = `<div class="bm-loading">${i18n[currentLang]['booking.connError']}</div>`;
+  }
+}
+
+function renderSlots(slots){
+  const slotsRow = document.getElementById('slots-row');
+  slotsRow.innerHTML = '';
+  if(slots.length === 0){
+    slotsRow.innerHTML = `<div class="bm-loading">${i18n[currentLang]['booking.noSlots']}</div>`;
+    return;
+  }
+  slots.forEach(s=>{
+    const el = document.createElement('div');
+    el.className = 'slot' + (!s.available ? ' taken' : '');
+    el.textContent = s.time;
+    if(s.available){
+      el.style.cursor = 'pointer';
+      el.addEventListener('click', ()=> selectSlot(s.time, el));
+    }
+    slotsRow.appendChild(el);
+  });
+}
+
+function selectSlot(time, el){
+  selectedSlot = time;
+  document.querySelectorAll('#slots-row .slot').forEach(s=> s.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('clientFields').style.display = 'grid';
+}
+
+async function confirmBooking(){
+  const name = document.getElementById('clientName').value.trim();
+  const email = document.getElementById('clientEmail').value.trim();
+  const phone = document.getElementById('clientPhone').value.trim();
+  const serviceId = document.getElementById('serviceSelect').value;
+  const msgEl = document.getElementById('bookingMessage');
+
+  if(!name || !email || !selectedDate || !selectedSlot){
+    msgEl.textContent = i18n[currentLang]['booking.missingFields'];
+    msgEl.className = 'bm-message error';
+    return;
+  }
+
+  msgEl.textContent = i18n[currentLang]['booking.sending'];
+  msgEl.className = 'bm-message';
+
+  try{
+    const res = await fetch(`${BACKEND_URL}/api/appointments`, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        client_name:name, client_email:email, client_phone:phone,
+        service_id:Number(serviceId), appointment_date:selectedDate, start_time:selectedSlot
+      })
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error || 'Error');
+
+    msgEl.textContent = i18n[currentLang]['booking.success'];
+    msgEl.className = 'bm-message success';
+    document.getElementById('clientName').value = '';
+    document.getElementById('clientEmail').value = '';
+    document.getElementById('clientPhone').value = '';
+    checkAvailability();
+  }catch(err){
+    msgEl.textContent = i18n[currentLang]['booking.failPrefix'] + err.message;
+    msgEl.className = 'bm-message error';
+  }
+}
+
+document.getElementById('checkAvailabilityBtn').addEventListener('click', checkAvailability);
+document.getElementById('confirmBtn').addEventListener('click', confirmBooking);
+
+const dateInput = document.getElementById('dateInput');
+dateInput.min = new Date().toISOString().split('T')[0];
 
 function renderGallery(){
   const grid = document.getElementById('gallery-grid');
@@ -409,28 +601,8 @@ function renderGallery(){
   }
 }
 
-function renderCalendar(lang){
-  const days = document.getElementById('days-row');
-  days.innerHTML = '';
-  dayLabels[lang].forEach((d,i)=>{
-    const chip = document.createElement('div');
-    chip.className = 'day-chip' + (i===2 ? ' active' : '');
-    chip.textContent = d + ' ' + (12+i);
-    days.appendChild(chip);
-  });
-  const slots = ['9:00','10:30','12:00','14:00','15:30','16:00','17:30','18:00'];
-  const taken = [2,5];
-  const slotsRow = document.getElementById('slots-row');
-  slotsRow.innerHTML = '';
-  slots.forEach((s,i)=>{
-    const el = document.createElement('div');
-    el.className = 'slot' + (taken.includes(i) ? ' taken' : (i===3 ? ' selected' : ''));
-    el.textContent = s;
-    slotsRow.appendChild(el);
-  });
-}
-
 function setLang(lang){
+  currentLang = lang;
   document.getElementById('btn-es').classList.toggle('active', lang==='es');
   document.getElementById('btn-en').classList.toggle('active', lang==='en');
   document.documentElement.lang = lang;
@@ -438,13 +610,17 @@ function setLang(lang){
     const key = el.getAttribute('data-i18n');
     if(i18n[lang][key]) el.textContent = i18n[lang][key];
   });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el=>{
+    const key = el.getAttribute('data-i18n-placeholder');
+    if(i18n[lang][key]) el.placeholder = i18n[lang][key];
+  });
   renderServices(lang);
-  renderCalendar(lang);
+  populateServiceSelect(lang);
+  setApiStatus(!document.getElementById('apiStatus').classList.contains('offline'));
 }
 
-renderServices('es');
 renderGallery();
-renderCalendar('es');
+fetchServices();
 
 /* ---- Smile illustration: morphs from closed to open smile with scroll ---- */
 const lerp = (a,b,t)=> a+(b-a)*t;
