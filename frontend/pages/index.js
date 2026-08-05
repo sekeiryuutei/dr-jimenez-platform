@@ -19,7 +19,7 @@ export default function Home() {
         <div className="eyebrow">Revisión de diseño</div>
         <h1>Elige la dirección visual</h1>
         <p>
-          Estos son los prototipos en curso. Ábrelos con el doctor, decidan la dirección
+          Estos son los prototipos en curso. Decide la dirección
           y seguimos conectando el sistema completo sobre esa base.
         </p>
       </header>
