@@ -184,9 +184,11 @@ export default function Home() {
   );
 }
 
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
+
 const prototypes = [
   {
-    href: '/prototypes/preview-landing.html',
+    href: `${basePath}/prototypes/preview-landing.html`,
     tag: 'V1',
     label: 'Luxury Parallax',
     desc: 'Hero con sonrisa animada por scroll, catálogo, galería, misión/visión, bilingüe ES/EN.',

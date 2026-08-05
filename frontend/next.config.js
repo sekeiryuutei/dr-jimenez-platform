@@ -12,6 +12,9 @@ const nextConfig = {
   images: { unoptimized: true },
   basePath: isGithubPages ? `/${repoName}` : '',
   assetPrefix: isGithubPages ? `/${repoName}/` : '',
+  env: {
+    NEXT_PUBLIC_BASE_PATH: isGithubPages ? `/${repoName}` : '',
+  },
 };
 
 module.exports = nextConfig;
