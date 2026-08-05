@@ -19,7 +19,7 @@ export default function Home() {
         <div className="eyebrow">Revisión de diseño</div>
         <h1>Elige la dirección visual</h1>
         <p>
-          Estos son los prototipos en curso. Decide la dirección
+          Estos son los prototipos en curso. Ábrelos con el doctor, decidan la dirección
           y seguimos conectando el sistema completo sobre esa base.
         </p>
       </header>
@@ -45,7 +45,8 @@ export default function Home() {
       </section>
 
       <footer className="footer">
-        Sistema en construcción — agendamiento, dashboard y pagos se conectan en la siguiente fase.
+        <div>Sistema en construcción — agendamiento, dashboard y pagos se conectan en la siguiente fase.</div>
+        <div className="foot-credit">Proyecto realizado por &lt;CodeVAM&gt;</div>
       </footer>
 
       <style jsx>{`
@@ -178,6 +179,10 @@ export default function Home() {
           font-size: 11px;
           color: #3a3a38;
           border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .foot-credit {
+          margin-top: 10px;
+          letter-spacing: 0.06em;
         }
       `}</style>
     </main>
