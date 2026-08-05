@@ -31,18 +31,40 @@ docker-compose up --build
 La base de datos se crea automáticamente con el esquema y los servicios semilla
 la primera vez que levantas el contenedor `db` (gracias a `init-db/schema.sql`).
 
+## Configurar el login del doctor
+
+El sistema usa un único usuario (el doctor), definido por variables de entorno — no hay pantalla de "crear cuenta".
+
+1. Genera el hash de la contraseña que quieras usar:
+   ```bash
+   cd backend
+   node scripts/generate-hash.js "laContraseñaQueElijas"
+   ```
+2. Copia el resultado y complétalo en `backend/.env` (local) y en las variables de entorno de Render (producción):
+   ```
+   DOCTOR_EMAIL=doctor@dominio.com
+   DOCTOR_PASSWORD_HASH=<lo que generó el script>
+   JWT_SECRET=<una cadena larga y aleatoria>
+   ```
+   Para generar el `JWT_SECRET`, puedes correr:
+   ```bash
+   node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+   ```
+3. El doctor entra en `/login` con ese email y esa contraseña, y ve sus citas en `/dashboard`.
+
 ## Endpoints del backend
 
-| Método | Ruta | Qué hace |
-|---|---|---|
-| GET | `/api/services` | Catálogo de servicios (sin precios) |
-| GET | `/api/availability?date=YYYY-MM-DD` | Horarios libres/ocupados ese día |
-| POST | `/api/appointments` | Crea una cita |
-| GET | `/api/appointments` | Lista todas las citas (dashboard) |
-| PATCH | `/api/appointments/:id` | Cambia el estado de una cita |
-| GET | `/api/appointments/stats/revenue` | Ingresos agrupados por mes |
-| POST | `/api/payments/intent` | Genera el intento de pago (Wompi) |
-| POST | `/api/payments/webhook` | Wompi notifica aquí cuando el pago se aprueba |
+| Método | Ruta | Protegida | Qué hace |
+|---|---|---|---|
+| POST | `/api/auth/login` | No | Login del doctor, devuelve un token |
+| GET | `/api/services` | No | Catálogo de servicios (sin precios) |
+| GET | `/api/availability?date=YYYY-MM-DD` | No | Horarios libres/ocupados ese día |
+| POST | `/api/appointments` | No | Crea una cita (flujo público del paciente) |
+| GET | `/api/appointments` | **Sí** | Lista todas las citas (dashboard) |
+| PATCH | `/api/appointments/:id` | **Sí** | Cambia el estado de una cita |
+| GET | `/api/appointments/stats/revenue` | **Sí** | Ingresos agrupados por mes |
+| POST | `/api/payments/intent` | No | Genera el intento de pago (Wompi) |
+| POST | `/api/payments/webhook` | No | Wompi notifica aquí cuando el pago se aprueba |
 
 ## Publicar el frontend en GitHub Pages
 
@@ -70,4 +92,3 @@ Tu sitio quedará en: `https://tu-usuario.github.io/dr-jimenez-platform/`
 4. Construir el dashboard del doctor (login, calendario, clientes, ingresos).
 5. Activar cuenta comercial de Wompi y completar las credenciales en `.env`.
 6. Mover el backend a un hosting real para que el doctor pueda usarlo en producción.
-# dr-jimenez-platform

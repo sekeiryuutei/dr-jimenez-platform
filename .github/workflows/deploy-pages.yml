@@ -34,6 +34,7 @@ jobs:
         working-directory: frontend
         env:
           GITHUB_PAGES: 'true'
+          NEXT_PUBLIC_API_URL: 'https://dr-jimenez-platform.onrender.com'
         run: npm run build
 
       - name: Configurar Pages

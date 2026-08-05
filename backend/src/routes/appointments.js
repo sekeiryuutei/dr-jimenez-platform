@@ -1,5 +1,6 @@
 const express = require('express');
 const pool = require('../db/pool');
+const requireAuth = require('../middleware/requireAuth');
 
 const router = express.Router();
 
@@ -51,8 +52,8 @@ router.post('/', async (req, res) => {
   }
 });
 
-// GET /api/appointments -> listado para el dashboard del doctor
-router.get('/', async (req, res) => {
+// GET /api/appointments -> listado para el dashboard del doctor (protegido)
+router.get('/', requireAuth, async (req, res) => {
   try {
     const { rows } = await pool.query(`
       SELECT a.id, a.appointment_date, a.start_time, a.status, a.amount_paid, a.payment_status,
@@ -70,8 +71,8 @@ router.get('/', async (req, res) => {
   }
 });
 
-// PATCH /api/appointments/:id -> el doctor confirma, cancela o completa una cita
-router.patch('/:id', async (req, res) => {
+// PATCH /api/appointments/:id -> el doctor confirma, cancela o completa una cita (protegido)
+router.patch('/:id', requireAuth, async (req, res) => {
   const { status } = req.body;
   const allowed = ['pending', 'confirmed', 'completed', 'cancelled'];
   if (!allowed.includes(status)) return res.status(400).json({ error: 'Status inválido' });
@@ -85,8 +86,8 @@ router.patch('/:id', async (req, res) => {
   }
 });
 
-// GET /api/appointments/stats/revenue -> ingresos para el dashboard
-router.get('/stats/revenue', async (req, res) => {
+// GET /api/appointments/stats/revenue -> ingresos para el dashboard (protegido)
+router.get('/stats/revenue', requireAuth, async (req, res) => {
   try {
     const { rows } = await pool.query(`
       SELECT date_trunc('month', appointment_date) AS month,

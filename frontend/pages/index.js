@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 export default function Home() {
   return (
     <main className="main">
@@ -12,14 +14,17 @@ export default function Home() {
             <div className="sub">Panel interno de desarrollo</div>
           </div>
         </div>
-        <div className="status">Backend: <span className="dot" /> localhost:4000</div>
+        <div className="nav-right">
+          <Link href="/login" className="panel-link">Panel del doctor →</Link>
+          <div className="status">Backend: <span className="dot" /> localhost:4000</div>
+        </div>
       </nav>
 
       <header className="hero">
         <div className="eyebrow">Revisión de diseño</div>
         <h1>Elige la dirección visual</h1>
         <p>
-          Estos son los prototipos en curso. decidan la dirección
+          Estos son los prototipos en curso. decide la dirección
           y seguimos conectando el sistema completo sobre esa base.
         </p>
       </header>
@@ -83,6 +88,18 @@ export default function Home() {
           align-items: center;
           gap: 6px;
         }
+        .nav-right {
+          display: flex;
+          align-items: center;
+          gap: 24px;
+        }
+        .panel-link {
+          font-size: 12px;
+          letter-spacing: 0.06em;
+          color: #4d7ea8;
+          text-decoration: none;
+        }
+        .panel-link:hover { color: #7f9fa2; }
         .dot {
           width: 6px;
           height: 6px;
