@@ -1,54 +1,98 @@
 const express = require('express');
+const crypto = require('crypto');
+const bcrypt = require('bcryptjs');
 const pool = require('../db/pool');
 const requireAuth = require('../middleware/requireAuth');
+const { sendMail } = require('../utils/email');
 
 const router = express.Router();
 
-// POST /api/appointments -> agendar cita (flujo público)
-router.post('/', async (req, res) => {
-  const { client_name, client_email, client_phone, service_id, appointment_date, start_time } = req.body;
+function generateTempPassword() {
+  // 10 caracteres, fácil de leer (sin caracteres ambiguos tipo 0/O, 1/l)
+  const chars = 'ABCDEFGHJKMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789';
+  return Array.from(crypto.randomFillSync(new Uint8Array(10)))
+    .map((n) => chars[n % chars.length])
+    .join('');
+}
 
-  if (!client_name || !client_email || !service_id || !appointment_date || !start_time) {
-    return res.status(400).json({ error: 'Faltan campos requeridos' });
+// POST /api/appointments -> agendar la valoración inicial (flujo público)
+// Si la cédula/email no existen todavía, crea la cuenta del paciente y le envía la clave.
+router.post('/', async (req, res) => {
+  const { cedula, client_name, client_email, client_phone, service_id, appointment_date, start_time } = req.body;
+
+  if (!cedula || !client_name || !client_email || !service_id || !appointment_date || !start_time) {
+    return res.status(400).json({ error: 'Faltan campos requeridos (cédula, nombre, email, servicio, fecha, hora)' });
   }
 
-  const clientDb = await pool.connect();
+  const db = await pool.connect();
   try {
-    await clientDb.query('BEGIN');
+    await db.query('BEGIN');
 
-    const { rows: clientRows } = await clientDb.query(
-      `INSERT INTO clients (name, email, phone)
-       VALUES ($1, $2, $3)
-       ON CONFLICT (email) DO UPDATE SET name = EXCLUDED.name, phone = EXCLUDED.phone
-       RETURNING id`,
-      [client_name, client_email, client_phone]
+    const { rows: existing } = await db.query(
+      `SELECT id, cedula, email FROM patients WHERE cedula = $1 OR email = $2`,
+      [cedula, client_email]
     );
-    const clientId = clientRows[0].id;
 
-    const { rows: takenRows } = await clientDb.query(
+    let patientId;
+    let newAccountCreated = false;
+    let tempPassword = null;
+
+    if (existing.length > 0) {
+      patientId = existing[0].id;
+      await db.query(
+        `UPDATE patients SET name = $1, phone = $2 WHERE id = $3`,
+        [client_name, client_phone, patientId]
+      );
+    } else {
+      tempPassword = generateTempPassword();
+      const passwordHash = await bcrypt.hash(tempPassword, 10);
+      const { rows: created } = await db.query(
+        `INSERT INTO patients (cedula, name, email, phone, password_hash)
+         VALUES ($1, $2, $3, $4, $5)
+         RETURNING id`,
+        [cedula, client_name, client_email, client_phone, passwordHash]
+      );
+      patientId = created[0].id;
+      newAccountCreated = true;
+    }
+
+    const { rows: takenRows } = await db.query(
       `SELECT id FROM appointments WHERE appointment_date = $1 AND start_time = $2 AND status != 'cancelled'`,
       [appointment_date, start_time]
     );
     if (takenRows.length > 0) {
-      await clientDb.query('ROLLBACK');
+      await db.query('ROLLBACK');
       return res.status(409).json({ error: 'Ese horario ya fue reservado, elige otro' });
     }
 
-    const { rows: apptRows } = await clientDb.query(
-      `INSERT INTO appointments (client_id, service_id, appointment_date, start_time, status)
+    const { rows: apptRows } = await db.query(
+      `INSERT INTO appointments (patient_id, service_id, appointment_date, start_time, status)
        VALUES ($1, $2, $3, $4, 'pending')
        RETURNING id`,
-      [clientId, service_id, appointment_date, start_time]
+      [patientId, service_id, appointment_date, start_time]
     );
 
-    await clientDb.query('COMMIT');
-    res.status(201).json({ appointment_id: apptRows[0].id, status: 'pending' });
+    await db.query('COMMIT');
+
+    if (newAccountCreated) {
+      // Fuera de la transacción a propósito: si el correo falla, la cita ya quedó guardada.
+      sendMail({
+        to: client_email,
+        subject: 'Tu cuenta en Dr. Jorge Jiménez — Estética Dental y Facial',
+        text: `Hola ${client_name},\n\nCreamos tu cuenta para que puedas ver tus citas y tratamientos.\n\nUsuario: ${client_email}\nContraseña temporal: ${tempPassword}\n\nPuedes cambiarla luego de iniciar sesión.\n\nTu cita quedó registrada, te confirmaremos pronto.`,
+      }).catch((err) => console.error('No se pudo enviar el correo de bienvenida:', err));
+    }
+
+    res.status(201).json({ appointment_id: apptRows[0].id, status: 'pending', account_created: newAccountCreated });
   } catch (err) {
-    await clientDb.query('ROLLBACK');
+    await db.query('ROLLBACK');
     console.error(err);
+    if (err.code === '23505') {
+      return res.status(409).json({ error: 'Ya existe una cuenta con esa cédula o correo pero con otro dato — verifica tus datos.' });
+    }
     res.status(500).json({ error: 'Error al crear la cita' });
   } finally {
-    clientDb.release();
+    db.release();
   }
 });
 
@@ -57,10 +101,10 @@ router.get('/', requireAuth, async (req, res) => {
   try {
     const { rows } = await pool.query(`
       SELECT a.id, a.appointment_date, a.start_time, a.status, a.amount_paid, a.payment_status,
-             c.name AS client_name, c.email AS client_email, c.phone AS client_phone,
+             p.name AS client_name, p.email AS client_email, p.phone AS client_phone, p.cedula,
              s.name_es AS service_name
       FROM appointments a
-      JOIN clients c ON c.id = a.client_id
+      JOIN patients p ON p.id = a.patient_id
       JOIN services s ON s.id = a.service_id
       ORDER BY a.appointment_date DESC, a.start_time DESC
     `);
