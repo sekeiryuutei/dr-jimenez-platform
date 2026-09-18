@@ -230,6 +230,30 @@ El paciente, una vez logueado en `/paciente/login`, puede ver su historial de ci
 - **Cuando actives Wompi**: agrega `WOMPI_PUBLIC_KEY` y `WOMPI_INTEGRITY_SECRET` en `.env` (los obtienes al crear tu cuenta comercial en wompi.co). A partir de ahí, el mismo botón genera automáticamente un QR que lleva al checkout real de Wompi (tarjeta y PSE), sin cambiar nada más.
 
 ---
+<<<<<<< HEAD
+=======
+
+## Duración de citas y cobro (actualizado)
+
+- Al **confirmar** una cita (desde `/doctor/dashboard` o `/doctor/schedule`), el sistema pregunta cuántos minutos va a durar — eso bloquea automáticamente ese rango en el calendario público, no solo el horario de inicio.
+- Al **completar** una cita, pregunta cuánto se le cobró (opcional) — queda registrado en el historial del paciente y en el dashboard.
+- El selector de citas en `/doctor/charge` solo muestra las citas **completadas el día de hoy y aún sin cobrar** — así no se llena con historial viejo.
+
+## Real Smile Transformations
+
+Slider interactivo antes/después (arrastra para comparar). Se administra desde `/doctor/media`, sección "Real Smile Transformations" — subes la foto de antes y la de después, con un título opcional.
+
+## Blog
+
+Se administra desde `/doctor/blog`: título, extracto y contenido en español e inglés, imagen destacada, y la opción de guardar como borrador antes de publicar. Aparece en el sitio público en la sección "Nuestro blog", con una vista de lectura al hacer clic en cualquier artículo.
+
+## Mapa y reseñas
+
+- El mapa usa la dirección real del consultorio (Unicentro, Torre Oasis, Consultorio 509A, Cali) — si la ubicación cambia, edítala en `frontend/public/index.html`, buscando `Centro+Comercial+Unicentro`.
+- Las reseñas de Google que se ven en el sitio son **de ejemplo** por ahora — edítalas directo en el array `REVIEWS` dentro de `frontend/public/index.html`. Conectar reseñas reales requiere una API key de Google Places (Google Cloud), es un paso aparte si lo quieres dar más adelante.
+
+---
+>>>>>>> e21f803 (cambios, 90%)
 
 ## Endpoints del backend
 
@@ -259,11 +283,24 @@ El paciente, una vez logueado en `/paciente/login`, puede ver su historial de ci
 | GET | `/api/mock-payment/:reference` | No | Datos del pago simulado (solo si Wompi no está activo) |
 | POST | `/api/mock-payment/:reference/approve` | No | Aprueba el pago simulado (solo pruebas locales) |
 | POST | `/api/payments/webhook` | No | Wompi notifica aquí cuando el pago real se aprueba |
+<<<<<<< HEAD
+=======
+| GET | `/api/transformations` | No | Casos antes/después públicos |
+| POST | `/api/admin/transformations` | Sí (doctor) | Sube un caso antes/después |
+| DELETE | `/api/admin/transformations/:id` | Sí (doctor) | Quita un caso |
+| GET | `/api/blog` | No | Artículos publicados |
+| GET | `/api/blog/:slug` | No | Un artículo completo |
+| GET | `/api/admin/blog` | Sí (doctor) | Todos los artículos, incluidos borradores |
+| POST | `/api/admin/blog` | Sí (doctor) | Crea un artículo |
+| PUT | `/api/admin/blog/:id` | Sí (doctor) | Edita un artículo |
+| DELETE | `/api/admin/blog/:id` | Sí (doctor) | Borra un artículo |
+>>>>>>> e21f803 (cambios, 90%)
 
 ---
 
 ## Qué falta (roadmap)
 
+<<<<<<< HEAD
 Las 4 fases funcionales ya están construidas y probables en local:
 - ✅ Sitio público completo (catálogo, galería, misión/visión, redes, bilingüe)
 - ✅ Módulo de imágenes editable desde el panel del doctor
@@ -276,5 +313,24 @@ Las 4 fases funcionales ya están construidas y probables en local:
 2. **Envío de correo real**: cuenta de Gmail + contraseña de aplicación (`GMAIL_USER`/`GMAIL_APP_PASSWORD`) — mientras tanto, las contraseñas de pacientes nuevos solo se ven en los logs del backend.
 3. **Pagos reales**: cuenta comercial en Wompi + `WOMPI_PUBLIC_KEY`/`WOMPI_INTEGRITY_SECRET` — mientras tanto, el cobro por QR usa una pantalla de pago simulada para que puedas probar el flujo completo sin mover dinero real.
 4. **Publicar el sitio público de nuevo en GitHub Pages** con todos estos cambios — ahora mismo la última versión publicada ahí sigue siendo la de antes de la Fase 3/4.
+=======
+Las 4 fases funcionales, más las mejoras de diseño y contenido, ya están construidas y probables en local:
+- ✅ Sitio público completo (catálogo, galería, misión/visión, redes, bilingüe, tipografía Poppins + Playfair Display)
+- ✅ Módulo de imágenes editable desde el panel del doctor
+- ✅ Cuentas de pacientes (registro automático por cédula, historial, cancelación)
+- ✅ Agenda interna avanzada (citas manuales, reagendar, bloquear horarios, duración real) + cobro por QR
+- ✅ Real Smile Transformations (slider antes/después)
+- ✅ Blog (escribible desde el panel, bilingüe)
+- ✅ Mapa de Google con la dirección real
+- ✅ Reseñas de Google (de ejemplo por ahora)
+
+**Lo único que falta es conectar servicios externos reales** cuando quieras pasar de "modo local/simulado" a producción de verdad:
+
+1. **Base de datos y backend en internet**: reconectar Supabase (ya lo hicimos una vez, ahora con las tablas nuevas: `transformations`, `blog_posts`, `duration_minutes`) y volver a desplegar el backend actualizado en Render.
+2. **Envío de correo real**: cuenta de Gmail + contraseña de aplicación (`GMAIL_USER`/`GMAIL_APP_PASSWORD`) — ya configurada, revisa la sección de arriba.
+3. **Pagos reales**: cuenta comercial en Wompi + `WOMPI_PUBLIC_KEY`/`WOMPI_INTEGRITY_SECRET` (o el sandbox de pruebas, ver sección de configuración) — mientras tanto, el cobro por QR usa una pantalla de pago simulada.
+4. **Reseñas reales de Google**: requiere una API key de Google Places (Google Cloud) — mientras tanto son de ejemplo, editables directo en el código.
+5. **Publicar el sitio público de nuevo en GitHub Pages** con todos estos cambios — ahora mismo la última versión publicada ahí es anterior a todo este bloque de trabajo.
+>>>>>>> e21f803 (cambios, 90%)
 
 Ninguna de estas requiere escribir código nuevo — son básicamente los mismos pasos que ya hicimos juntos para Supabase y Render, una vez decidas que es momento de mostrarle esto al doctor en producción real.

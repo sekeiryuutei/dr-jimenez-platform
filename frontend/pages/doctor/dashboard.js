@@ -37,11 +37,44 @@ export default function Dashboard() {
   useEffect(() => { loadAppointments(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, []);
 
   async function updateStatus(id, status) {
+<<<<<<< HEAD
+=======
+    const body = { status };
+
+    if (status === 'confirmed') {
+      const input = prompt('¿Cuánto tiempo va a ocupar esta cita? (minutos)', '20');
+      if (input === null) return;
+      const minutes = parseInt(input, 10);
+      if (!Number.isInteger(minutes) || minutes < 5 || minutes > 480) {
+        alert('Ingresa un número de minutos válido (entre 5 y 480).');
+        return;
+      }
+      body.duration_minutes = minutes;
+    }
+
+    if (status === 'completed') {
+      const input = prompt('¿Cuánto se le cobró al paciente? (COP, deja vacío si aún no se cobra)', '');
+      if (input === null) return;
+      if (input.trim() !== '') {
+        const amount = Number(input.replace(/[^0-9]/g, ''));
+        if (!Number.isFinite(amount) || amount < 0) {
+          alert('Ingresa un valor numérico válido.');
+          return;
+        }
+        body.amount_paid = amount;
+      }
+    }
+
+>>>>>>> e21f803 (cambios, 90%)
     try {
       const res = await fetch(`${BACKEND_URL}/api/appointments/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
+<<<<<<< HEAD
         body: JSON.stringify({ status }),
+=======
+        body: JSON.stringify(body),
+>>>>>>> e21f803 (cambios, 90%)
       });
       if (!res.ok) throw new Error('No se pudo actualizar');
       loadAppointments();
@@ -74,7 +107,14 @@ export default function Dashboard() {
               <div className="panel-row" key={a.id}>
                 <div>
                   <div className="panel-row-main">{a.client_name} — {a.service_name}</div>
+<<<<<<< HEAD
                   <div className="panel-row-meta">{a.appointment_date?.slice(0, 10)} · {a.start_time?.slice(0, 5)} · {a.client_email}</div>
+=======
+                  <div className="panel-row-meta">
+                    {a.appointment_date?.slice(0, 10)} · {a.start_time?.slice(0, 5)} · {a.duration_minutes || 20} min · {a.client_email}
+                    {a.amount_paid > 0 && ` · $${Number(a.amount_paid).toLocaleString('es-CO')}`}
+                  </div>
+>>>>>>> e21f803 (cambios, 90%)
                 </div>
                 <div className="panel-row-actions" style={{ alignItems: 'center' }}>
                   <span className={`panel-badge badge-${a.status}`}>{STATUS_LABEL[a.status] || a.status}</span>

@@ -11,6 +11,10 @@ const authRouter = require('./routes/auth');
 const mediaRouter = require('./routes/media');
 const patientPortalRouter = require('./routes/patientPortal');
 const scheduleRouter = require('./routes/schedule');
+<<<<<<< HEAD
+=======
+const blogRouter = require('./routes/blog');
+>>>>>>> e21f803 (cambios, 90%)
 
 const app = express();
 app.use(cors());
@@ -29,6 +33,10 @@ app.use('/api/auth', authRouter);
 app.use('/api', mediaRouter);
 app.use('/api', patientPortalRouter);
 app.use('/api', scheduleRouter);
+<<<<<<< HEAD
+=======
+app.use('/api', blogRouter);
+>>>>>>> e21f803 (cambios, 90%)
 
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () => console.log(`API corriendo en http://localhost:${PORT}`));

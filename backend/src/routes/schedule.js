@@ -72,7 +72,11 @@ router.post('/admin/appointments', requireAuth, async (req, res) => {
       sendMail({
         to: client_email,
         subject: 'Tu cuenta en Dr. Jorge Jiménez — Estética Dental y Facial',
+<<<<<<< HEAD
         text: `Hola ${client_name},\n\nCreamos tu cuenta para que puedas ver tus citas y tratamientos.\n\nUsuario: ${client_email}\nContraseña temporal: ${tempPassword}\n\nTu cita quedó registrada.`,
+=======
+        text: `Hola ${client_name},\n\nhttp://localhost:3000/paciente/login\n\n Creamos tu cuenta para que puedas ver tus citas y tratamientos.\n\nUsuario: ${client_email}\nContraseña temporal: ${tempPassword}\n\nTu cita quedó registrada.`,
+>>>>>>> e21f803 (cambios, 90%)
       }).catch((err) => console.error('No se pudo enviar el correo:', err));
     }
 

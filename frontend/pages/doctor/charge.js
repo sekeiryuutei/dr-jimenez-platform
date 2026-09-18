@@ -23,7 +23,14 @@ export default function Charge() {
       const res = await fetch(`${BACKEND_URL}/api/appointments`, { headers: { Authorization: `Bearer ${getToken()}` } });
       if (res.status === 401) { router.replace('/doctor/login'); return; }
       const data = await res.json();
+<<<<<<< HEAD
       setAppointments(data.filter((a) => a.payment_status !== 'paid' && a.status !== 'cancelled'));
+=======
+      const today = new Date().toISOString().slice(0, 10);
+      setAppointments(
+        data.filter((a) => a.status === 'completed' && a.payment_status !== 'paid' && a.appointment_date?.slice(0, 10) === today)
+      );
+>>>>>>> e21f803 (cambios, 90%)
     } catch (err) {
       setError('No se pudo conectar con el servidor');
     } finally {
@@ -66,12 +73,24 @@ export default function Charge() {
       <div className="panel-content" style={{ maxWidth: 520 }}>
         <div className="panel-eyebrow">Panel del doctor</div>
         <h1 className="panel-title">Cobrar a un paciente</h1>
+<<<<<<< HEAD
         <p className="panel-subtitle">Elige la cita, ingresa el valor, y muéstrale el QR al paciente para que pague desde su celular.</p>
+=======
+        <p className="panel-subtitle">Elige la cita, ingresa el valor, y muéstrale el QR al paciente para que pague desde su celular. Solo aparecen las citas completadas hoy y aún sin cobrar.</p>
+>>>>>>> e21f803 (cambios, 90%)
 
         {loading && <p className="panel-empty">Cargando…</p>}
         {error && <p className="panel-msg error">{error}</p>}
 
+<<<<<<< HEAD
         {!loading && (
+=======
+        {!loading && appointments.length === 0 && (
+          <p className="panel-empty">No hay citas completadas hoy que aún necesiten cobro.</p>
+        )}
+
+        {!loading && appointments.length > 0 && (
+>>>>>>> e21f803 (cambios, 90%)
           <form onSubmit={generateCharge}>
             <label className="panel-label">Cita</label>
             <select className="panel-select" value={appointmentId} onChange={(e) => setAppointmentId(e.target.value)} required>

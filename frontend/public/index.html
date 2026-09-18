@@ -192,6 +192,37 @@
   .map-frame{min-height:340px;}
   .map-frame iframe{width:100%; height:100%; min-height:340px; border:0; display:block; filter:grayscale(35%) contrast(1.05);}
 
+<<<<<<< HEAD
+=======
+  /* BLOG */
+  .blog-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:24px;}
+  .blog-card{background:var(--charcoal); border:1px solid var(--line); cursor:pointer; transition:border-color 0.25s, transform 0.25s; display:flex; flex-direction:column;}
+  .blog-card:hover{border-color:var(--navy-light); transform:translateY(-3px);}
+  .blog-img{aspect-ratio:16/10; background:linear-gradient(155deg,#232323,#151515); overflow:hidden;}
+  .blog-img img{width:100%; height:100%; object-fit:cover; display:block;}
+  .blog-body{padding:24px; flex:1; display:flex; flex-direction:column;}
+  .blog-date{font-size:11px; color:var(--steel); letter-spacing:0.06em; text-transform:uppercase; margin-bottom:10px;}
+  .blog-card h3{font-size:19px; margin-bottom:10px;}
+  .blog-card p{font-size:13px; color:var(--offwhite); line-height:1.6; flex:1;}
+  .blog-read{font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--navy-light); margin-top:16px;}
+
+  .blog-overlay{
+    position:fixed; inset:0; z-index:300; background:rgba(5,5,5,0.94); overflow-y:auto;
+    opacity:0; pointer-events:none; transition:opacity 0.3s;
+  }
+  .blog-overlay.open{opacity:1; pointer-events:auto;}
+  .blog-overlay-inner{max-width:760px; margin:0 auto; padding:100px 6vw 100px;}
+  .blog-overlay-close{
+    position:fixed; top:24px; right:24px; z-index:301; width:42px; height:42px; border-radius:50%;
+    background:var(--charcoal); border:1px solid var(--line); color:var(--white); font-size:18px;
+    display:flex; align-items:center; justify-content:center; cursor:pointer;
+  }
+  .blog-overlay-img{width:100%; aspect-ratio:16/9; object-fit:cover; margin-bottom:34px; border:1px solid var(--line);}
+  .blog-overlay-date{font-size:12px; color:var(--steel); letter-spacing:0.06em; text-transform:uppercase; margin-bottom:14px;}
+  .blog-overlay h2{font-size:clamp(28px,3.4vw,42px); margin-bottom:26px;}
+  .blog-overlay-content{font-size:15px; color:var(--offwhite); line-height:1.9; white-space:pre-wrap;}
+
+>>>>>>> e21f803 (cambios, 90%)
   /* MISSION / VISION */
   .mv-wrap{display:grid; grid-template-columns:1fr 1fr; gap:70px; align-items:start;}
   .mv-block .eyebrow{margin-bottom:14px;}
@@ -267,6 +298,10 @@
     .transform-grid{grid-template-columns:1fr;}
     .reviews-grid{grid-template-columns:1fr;}
     .map-wrap{grid-template-columns:1fr;}
+<<<<<<< HEAD
+=======
+    .blog-grid{grid-template-columns:1fr;}
+>>>>>>> e21f803 (cambios, 90%)
     section{padding:90px 6vw;}
   }
 </style>
@@ -287,6 +322,7 @@
   <div class="navlinks">
     <a href="#servicios" data-i18n="nav.services">Servicios</a>
     <a href="#casos" data-i18n="nav.cases">Casos</a>
+    <a href="#blog" data-i18n="nav.blog">Blog</a>
     <a href="#nosotros" data-i18n="nav.about">Nosotros</a>
     <a href="#agendar" data-i18n="nav.book">Agendar</a>
   </div>
@@ -429,6 +465,18 @@
   </div>
 </section>
 
+<section id="blog">
+  <div class="watermark" data-parallax="0.1">Blog</div>
+  <div class="container">
+    <div class="services-header reveal">
+      <div class="eyebrow" data-i18n="blog.eyebrow">Consejos y novedades</div>
+      <h2 data-i18n="blog.title">Nuestro blog</h2>
+      <div class="rule center"></div>
+    </div>
+    <div class="blog-grid reveal" id="blog-grid"></div>
+  </div>
+</section>
+
 <section id="agendar" class="booking-section">
   <div class="watermark" data-parallax="-0.1">Agenda</div>
   <div class="container booking-wrap reveal">
@@ -471,6 +519,11 @@
 <a class="wa-float" href="https://wa.me/573116460735" target="_blank" rel="noreferrer" aria-label="WhatsApp">
   <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2Zm0 18.2c-1.6 0-3.1-.4-4.4-1.2l-.3-.2-3 .8.8-2.9-.2-.3A8.2 8.2 0 1 1 20.2 12 8.2 8.2 0 0 1 12 20.2Zm4.5-6.1c-.2-.1-1.4-.7-1.7-.8-.2-.1-.4-.1-.6.1-.2.2-.6.8-.8 1-.1.2-.3.2-.5.1-.2-.1-1-.4-2-1.2a7 7 0 0 1-1.3-1.6c-.1-.2 0-.4.1-.5l.4-.4.2-.4c.1-.1.1-.3 0-.4-.1-.1-.6-1.4-.8-1.9-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.4.1-.6.3-.2.2-.8.8-.8 1.9s.8 2.2.9 2.3c.1.2 1.6 2.5 4 3.5.6.2 1 .4 1.3.5.6.2 1.1.2 1.5.1.5-.1 1.4-.6 1.6-1.1.2-.5.2-1 .1-1.1-.1-.1-.2-.2-.4-.3Z"/></svg>
 </a>
+
+<div class="blog-overlay" id="blogOverlay">
+  <button class="blog-overlay-close" id="blogOverlayClose" aria-label="Cerrar">✕</button>
+  <div class="blog-overlay-inner" id="blogOverlayContent"></div>
+</div>
 
 <footer>
   <div class="foot-brand">Dr. Jorge Jiménez</div>
@@ -531,7 +584,11 @@ const GALLERY_TOTAL = 8;
 
 const i18n = {
   es:{
+<<<<<<< HEAD
     "nav.sub":"Estética Dental y Facial","nav.services":"Servicios","nav.cases":"Casos","nav.about":"Nosotros","nav.book":"Agendar",
+=======
+    "nav.sub":"Estética Dental y Facial","nav.services":"Servicios","nav.cases":"Casos","nav.blog":"Blog","nav.about":"Nosotros","nav.book":"Agendar",
+>>>>>>> e21f803 (cambios, 90%)
     "hero.eyebrow":"Cali · Consulta privada","hero.title":"Sonrisas que hablan de ti",
     "hero.sub":"Odontología estética y rejuvenecimiento facial de alta precisión, en un espacio pensado para cada detalle de tu experiencia.",
     "hero.cta":"Agendar valoración inicial","hero.scroll":"Desliza",
@@ -550,6 +607,12 @@ const i18n = {
     "map.eyebrow":"Visítanos","map.title":"Nuestra ubicación",
     "map.address":"Centro Comercial Unicentro, Consultorio 509A, Torre Oasis — Cali, Colombia.",
     "map.cta":"Cómo llegar",
+<<<<<<< HEAD
+=======
+    "blog.eyebrow":"Consejos y novedades","blog.title":"Nuestro blog",
+    "blog.empty":"Muy pronto vas a encontrar aquí artículos sobre cuidado dental y facial.",
+    "blog.read":"Leer más","blog.loading":"Cargando artículo…","blog.error":"No se pudo cargar este artículo.",
+>>>>>>> e21f803 (cambios, 90%)
     "mission.eyebrow":"Misión","mission.title":"Nuestra misión",
     "mission.text":"Elevar cada sonrisa a su máxima expresión de naturalidad y armonía, combinando precisión clínica, tecnología de vanguardia y una experiencia de paciente diseñada al detalle — para que cada persona que confía en nosotros se vea, y se sienta, en su mejor versión.",
     "vision.eyebrow":"Visión","vision.title":"Nuestra visión",
@@ -574,7 +637,11 @@ const i18n = {
     "footer.note":"Sitio en evolución continua junto al equipo del consultorio."
   },
   en:{
+<<<<<<< HEAD
     "nav.sub":"Dental & Facial Aesthetics","nav.services":"Services","nav.cases":"Cases","nav.about":"About","nav.book":"Book",
+=======
+    "nav.sub":"Dental & Facial Aesthetics","nav.services":"Services","nav.cases":"Cases","nav.blog":"Blog","nav.about":"About","nav.book":"Book",
+>>>>>>> e21f803 (cambios, 90%)
     "hero.eyebrow":"Cali · Private practice","hero.title":"Smiles that speak for you",
     "hero.sub":"High-precision aesthetic dentistry and facial rejuvenation, in a space designed around every detail of your experience.",
     "hero.cta":"Book initial assessment","hero.scroll":"Scroll",
@@ -593,6 +660,12 @@ const i18n = {
     "map.eyebrow":"Visit us","map.title":"Our location",
     "map.address":"Unicentro Mall, Office 509A, Torre Oasis — Cali, Colombia.",
     "map.cta":"Get directions",
+<<<<<<< HEAD
+=======
+    "blog.eyebrow":"Tips and news","blog.title":"Our blog",
+    "blog.empty":"Articles about dental and facial care are coming soon.",
+    "blog.read":"Read more","blog.loading":"Loading article…","blog.error":"This article could not be loaded.",
+>>>>>>> e21f803 (cambios, 90%)
     "mission.eyebrow":"Mission","mission.title":"Our mission",
     "mission.text":"To elevate every smile to its fullest natural harmony, combining clinical precision, leading-edge technology and a patient experience designed down to the last detail — so everyone who trusts us looks, and feels, like their best self.",
     "vision.eyebrow":"Vision","vision.title":"Our vision",
@@ -944,13 +1017,98 @@ function setLang(lang){
   renderServices(lang);
   populateServiceSelect(lang);
   renderReviews();
+<<<<<<< HEAD
   setApiStatus(!document.getElementById('apiStatus').classList.contains('offline'));
 }
 
+=======
+  renderBlog();
+  setApiStatus(!document.getElementById('apiStatus').classList.contains('offline'));
+}
+
+/* ---- Blog ---- */
+let BLOG_POSTS = [];
+
+async function fetchBlog(){
+  try{
+    const res = await fetch(`${BACKEND_URL}/api/blog`);
+    if(res.ok) BLOG_POSTS = await res.json();
+  }catch(err){
+    console.warn('No se pudo cargar el blog.', err);
+  }
+  renderBlog();
+}
+
+function renderBlog(){
+  const grid = document.getElementById('blog-grid');
+  grid.innerHTML = '';
+
+  if(BLOG_POSTS.length === 0){
+    grid.innerHTML = `<p style="color:var(--midgray); font-size:13px;">${i18n[currentLang]['blog.empty']}</p>`;
+    return;
+  }
+
+  BLOG_POSTS.forEach((post)=>{
+    const card = document.createElement('div');
+    card.className = 'blog-card';
+    const title = post['title_'+currentLang];
+    const excerpt = post['excerpt_'+currentLang] || '';
+    const date = new Date(post.created_at).toLocaleDateString(currentLang === 'es' ? 'es-CO' : 'en-US', {year:'numeric', month:'long', day:'numeric'});
+    card.innerHTML = `
+      <div class="blog-img">${post.image_url ? `<img src="${resolveImageUrl(post.image_url)}" alt="${title}">` : ''}</div>
+      <div class="blog-body">
+        <div class="blog-date">${date}</div>
+        <h3>${title}</h3>
+        <p>${excerpt}</p>
+        <div class="blog-read">${i18n[currentLang]['blog.read']} →</div>
+      </div>`;
+    card.addEventListener('click', ()=> openBlogPost(post.slug));
+    grid.appendChild(card);
+  });
+}
+
+async function openBlogPost(slug){
+  const overlay = document.getElementById('blogOverlay');
+  const content = document.getElementById('blogOverlayContent');
+  content.innerHTML = `<p style="color:var(--midgray);">${i18n[currentLang]['blog.loading']}</p>`;
+  overlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+
+  try{
+    const res = await fetch(`${BACKEND_URL}/api/blog/${slug}`);
+    if(!res.ok) throw new Error('not found');
+    const post = await res.json();
+    const title = post['title_'+currentLang];
+    const body = post['content_'+currentLang];
+    const date = new Date(post.created_at).toLocaleDateString(currentLang === 'es' ? 'es-CO' : 'en-US', {year:'numeric', month:'long', day:'numeric'});
+    content.innerHTML = `
+      ${post.image_url ? `<img class="blog-overlay-img" src="${resolveImageUrl(post.image_url)}" alt="${title}">` : ''}
+      <div class="blog-overlay-date">${date}</div>
+      <h2>${title}</h2>
+      <div class="blog-overlay-content">${body}</div>`;
+  }catch(err){
+    content.innerHTML = `<p style="color:var(--red);">${i18n[currentLang]['blog.error']}</p>`;
+  }
+}
+
+function closeBlogPost(){
+  document.getElementById('blogOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.getElementById('blogOverlayClose').addEventListener('click', closeBlogPost);
+document.getElementById('blogOverlay').addEventListener('click', (e)=>{
+  if(e.target.id === 'blogOverlay') closeBlogPost();
+});
+
+>>>>>>> e21f803 (cambios, 90%)
 fetchGallery();
 fetchServices();
 fetchTransformations();
 renderReviews();
+<<<<<<< HEAD
+=======
+fetchBlog();
+>>>>>>> e21f803 (cambios, 90%)
 
 /* ---- Parallax engine ---- */
 const parallaxEls = Array.from(document.querySelectorAll('[data-parallax]'));

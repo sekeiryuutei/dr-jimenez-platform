@@ -10,6 +10,10 @@ const DOCTOR_LINKS = [
   { href: '/doctor/media', label: 'Imágenes' },
   { href: '/doctor/schedule', label: 'Agenda' },
   { href: '/doctor/charge', label: 'Cobros' },
+<<<<<<< HEAD
+=======
+  { href: '/doctor/blog', label: 'Blog' },
+>>>>>>> e21f803 (cambios, 90%)
 ];
 
 export default function PanelNav({ role = 'doctor', active, subtitle, onLogout }) {

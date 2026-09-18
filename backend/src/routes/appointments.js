@@ -79,7 +79,11 @@ router.post('/', async (req, res) => {
       sendMail({
         to: client_email,
         subject: 'Tu cuenta en Dr. Jorge Jiménez — Estética Dental y Facial',
+<<<<<<< HEAD
         text: `Hola ${client_name},\n\nCreamos tu cuenta para que puedas ver tus citas y tratamientos.\n\nUsuario: ${client_email}\nContraseña temporal: ${tempPassword}\n\nPuedes cambiarla luego de iniciar sesión.\n\nTu cita quedó registrada, te confirmaremos pronto.`,
+=======
+        text: `Hola ${client_name},\n\nhttp://localhost:3000/paciente/login\n\n Creamos tu cuenta para que puedas ver tus citas y tratamientos.\n\nUsuario: ${client_email}\nContraseña temporal: ${tempPassword}\n\nPuedes cambiarla luego de iniciar sesión.\n\nTu cita quedó registrada, te confirmaremos pronto.`,
+>>>>>>> e21f803 (cambios, 90%)
       }).catch((err) => console.error('No se pudo enviar el correo de bienvenida:', err));
     }
 
@@ -100,7 +104,11 @@ router.post('/', async (req, res) => {
 router.get('/', requireAuth, async (req, res) => {
   try {
     const { rows } = await pool.query(`
+<<<<<<< HEAD
       SELECT a.id, a.appointment_date, a.start_time, a.status, a.amount_paid, a.payment_status,
+=======
+      SELECT a.id, a.appointment_date, a.start_time, a.duration_minutes, a.status, a.amount_paid, a.payment_status,
+>>>>>>> e21f803 (cambios, 90%)
              p.name AS client_name, p.email AS client_email, p.phone AS client_phone, p.cedula,
              s.name_es AS service_name
       FROM appointments a
@@ -116,13 +124,37 @@ router.get('/', requireAuth, async (req, res) => {
 });
 
 // PATCH /api/appointments/:id -> el doctor confirma, cancela o completa una cita (protegido)
+// Al confirmar puede fijar cuánto tiempo ocupará (duration_minutes) -> esto bloquea el
+// calendario público por ese rango. Al completar puede fijar cuánto se le cobró.
 router.patch('/:id', requireAuth, async (req, res) => {
-  const { status } = req.body;
+  const { status, duration_minutes, amount_paid } = req.body;
   const allowed = ['pending', 'confirmed', 'completed', 'cancelled'];
   if (!allowed.includes(status)) return res.status(400).json({ error: 'Status inválido' });
 
+  if (status === 'confirmed' && duration_minutes !== undefined) {
+    const minutes = Number(duration_minutes);
+    if (!Number.isInteger(minutes) || minutes < 5 || minutes > 480) {
+      return res.status(400).json({ error: 'La duración debe ser un número de minutos válido (5 a 480)' });
+    }
+  }
+
   try {
-    await pool.query(`UPDATE appointments SET status = $1 WHERE id = $2`, [status, req.params.id]);
+    const sets = ['status = $1'];
+    const values = [status];
+    let i = 2;
+
+    if (status === 'confirmed' && duration_minutes !== undefined) {
+      sets.push(`duration_minutes = $${i++}`);
+      values.push(Number(duration_minutes));
+    }
+    if (status === 'completed' && amount_paid !== undefined) {
+      sets.push(`amount_paid = $${i++}`);
+      values.push(Number(amount_paid));
+      sets.push(`payment_status = 'paid'`);
+    }
+
+    values.push(req.params.id);
+    await pool.query(`UPDATE appointments SET ${sets.join(', ')} WHERE id = $${i}`, values);
     res.json({ ok: true });
   } catch (err) {
     console.error(err);

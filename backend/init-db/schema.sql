@@ -27,6 +27,7 @@ CREATE TABLE IF NOT EXISTS appointments (
   service_id INT REFERENCES services(id),
   appointment_date DATE NOT NULL,
   start_time TIME NOT NULL,
+  duration_minutes INT NOT NULL DEFAULT 20,
   status VARCHAR(20) NOT NULL DEFAULT 'pending',      -- pending, confirmed, completed, cancelled
   amount_paid NUMERIC(12,2) DEFAULT 0,
   payment_status VARCHAR(20) DEFAULT 'unpaid',        -- unpaid, deposit_paid, paid
@@ -77,6 +78,23 @@ CREATE TABLE IF NOT EXISTS transformations (
   created_at TIMESTAMP DEFAULT now()
 );
 
+<<<<<<< HEAD
+=======
+CREATE TABLE IF NOT EXISTS blog_posts (
+  id SERIAL PRIMARY KEY,
+  slug VARCHAR(180) UNIQUE NOT NULL,
+  title_es VARCHAR(200) NOT NULL,
+  title_en VARCHAR(200) NOT NULL,
+  excerpt_es TEXT,
+  excerpt_en TEXT,
+  content_es TEXT NOT NULL,
+  content_en TEXT NOT NULL,
+  image_url TEXT,
+  published BOOLEAN NOT NULL DEFAULT true,
+  created_at TIMESTAMP DEFAULT now()
+);
+
+>>>>>>> e21f803 (cambios, 90%)
 -- Servicios semilla (sin precios, según lo pedido)
 INSERT INTO services (name_es, name_en, description_es, description_en, duration_minutes, image_url) VALUES
 ('Operatoria dental', 'Restorative dentistry', 'Tratamiento de caries y restauración de piezas dentales con materiales estéticos.', 'Cavity treatment and tooth restoration with aesthetic materials.', 45, '/images/services/operatoria-dental.jpg'),
