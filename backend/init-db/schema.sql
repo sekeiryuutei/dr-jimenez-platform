@@ -7,23 +7,27 @@ CREATE TABLE IF NOT EXISTS services (
   description_es TEXT,
   description_en TEXT,
   duration_minutes INT NOT NULL DEFAULT 60,
+  image_url TEXT,
   active BOOLEAN NOT NULL DEFAULT true
 );
 
-CREATE TABLE IF NOT EXISTS clients (
+CREATE TABLE IF NOT EXISTS patients (
   id SERIAL PRIMARY KEY,
+  cedula VARCHAR(30) UNIQUE NOT NULL,
   name VARCHAR(160) NOT NULL,
   email VARCHAR(160) UNIQUE NOT NULL,
   phone VARCHAR(40),
+  password_hash TEXT NOT NULL,
   created_at TIMESTAMP DEFAULT now()
 );
 
 CREATE TABLE IF NOT EXISTS appointments (
   id SERIAL PRIMARY KEY,
-  client_id INT REFERENCES clients(id),
+  patient_id INT REFERENCES patients(id),
   service_id INT REFERENCES services(id),
   appointment_date DATE NOT NULL,
   start_time TIME NOT NULL,
+  duration_minutes INT NOT NULL DEFAULT 20,
   status VARCHAR(20) NOT NULL DEFAULT 'pending',      -- pending, confirmed, completed, cancelled
   amount_paid NUMERIC(12,2) DEFAULT 0,
   payment_status VARCHAR(20) DEFAULT 'unpaid',        -- unpaid, deposit_paid, paid
@@ -48,14 +52,65 @@ CREATE TABLE IF NOT EXISTS availability_blocks (
   active BOOLEAN NOT NULL DEFAULT true
 );
 
+CREATE TABLE IF NOT EXISTS gallery_images (
+  id SERIAL PRIMARY KEY,
+  image_url TEXT NOT NULL,
+  sort_order INT NOT NULL DEFAULT 0,
+  created_at TIMESTAMP DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS blocked_slots (
+  id SERIAL PRIMARY KEY,
+  block_date DATE NOT NULL,
+  start_time TIME NOT NULL,
+  end_time TIME NOT NULL,
+  reason VARCHAR(160),
+  created_at TIMESTAMP DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS transformations (
+  id SERIAL PRIMARY KEY,
+  before_url TEXT NOT NULL,
+  after_url TEXT NOT NULL,
+  title_es VARCHAR(160),
+  title_en VARCHAR(160),
+  sort_order INT NOT NULL DEFAULT 0,
+  created_at TIMESTAMP DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS blog_posts (
+  id SERIAL PRIMARY KEY,
+  slug VARCHAR(180) UNIQUE NOT NULL,
+  title_es VARCHAR(200) NOT NULL,
+  title_en VARCHAR(200) NOT NULL,
+  excerpt_es TEXT,
+  excerpt_en TEXT,
+  content_es TEXT NOT NULL,
+  content_en TEXT NOT NULL,
+  image_url TEXT,
+  published BOOLEAN NOT NULL DEFAULT true,
+  created_at TIMESTAMP DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS password_resets (
+  id SERIAL PRIMARY KEY,
+  patient_id INT REFERENCES patients(id),
+  token VARCHAR(80) UNIQUE NOT NULL,
+  expires_at TIMESTAMP NOT NULL,
+  used BOOLEAN NOT NULL DEFAULT false,
+  created_at TIMESTAMP DEFAULT now()
+);
+
 -- Servicios semilla (sin precios, según lo pedido)
-INSERT INTO services (name_es, name_en, description_es, description_en, duration_minutes) VALUES
-('Diseño de sonrisa', 'Smile design', 'Planeación digital estética para transformar la armonía de tu sonrisa.', 'Digital aesthetic planning to transform your smile''s harmony.', 60),
-('Blanqueamiento dental', 'Teeth whitening', 'Procedimientos profesionales para un tono natural y luminoso.', 'Professional procedures for a natural, luminous tone.', 45),
-('Ortodoncia invisible', 'Invisible orthodontics', 'Alineadores transparentes para resultados discretos y precisos.', 'Clear aligners for discreet, precise results.', 45),
-('Implantes dentales', 'Dental implants', 'Reemplazo funcional y estético con tecnología de precisión.', 'Functional and aesthetic replacement with precision technology.', 90),
-('Rejuvenecimiento facial', 'Facial rejuvenation', 'Tratamientos no invasivos que realzan tus rasgos naturales.', 'Non-invasive treatments that enhance your natural features.', 60),
-('Armonización facial', 'Facial harmonization', 'Equilibrio y proporción facial con técnicas mínimamente invasivas.', 'Facial balance and proportion with minimally invasive techniques.', 60)
+INSERT INTO services (name_es, name_en, description_es, description_en, duration_minutes, image_url) VALUES
+('Operatoria dental', 'Restorative dentistry', 'Tratamiento de caries y restauración de piezas dentales con materiales estéticos.', 'Cavity treatment and tooth restoration with aesthetic materials.', 45, '/images/services/operatoria-dental.jpg'),
+('Aclaramiento dental', 'Teeth whitening', 'Procedimientos profesionales para un tono natural y luminoso.', 'Professional procedures for a natural, luminous tone.', 45, '/images/services/aclaramiento-dental.jpg'),
+('Fase higiénica', 'Hygiene phase', 'Limpieza profesional y control preventivo de tu salud oral.', 'Professional cleaning and preventive oral health care.', 30, '/images/services/fase-higienica.jpg'),
+('Implantología', 'Implantology', 'Reemplazo funcional y estético con tecnología de precisión.', 'Functional and aesthetic replacement with precision technology.', 90, '/images/services/implantologia.jpg'),
+('Diseño de sonrisa', 'Smile design', 'Planeación digital estética para transformar la armonía de tu sonrisa.', 'Digital aesthetic planning to transform your smile''s harmony.', 60, '/images/services/diseno-sonrisa.jpg'),
+('Armonización facial', 'Facial harmonization', 'Equilibrio y proporción facial con técnicas mínimamente invasivas.', 'Facial balance and proportion with minimally invasive techniques.', 60, '/images/services/armonizacion-facial.jpg'),
+('Rehabilitación oral', 'Oral rehabilitation', 'Recuperación integral de la función y estética de tu boca.', 'Comprehensive recovery of your mouth''s function and aesthetics.', 90, '/images/services/rehabilitacion-oral.jpg'),
+('Cirugía oral', 'Oral surgery', 'Procedimientos quirúrgicos especializados con máxima precisión.', 'Specialized surgical procedures with maximum precision.', 60, '/images/services/cirugia-oral.jpg')
 ON CONFLICT DO NOTHING;
 
 -- Disponibilidad base: Lunes a viernes 9am-6pm, sábado 9am-1pm

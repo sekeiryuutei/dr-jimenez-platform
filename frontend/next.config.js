@@ -15,6 +15,14 @@ const nextConfig = {
   env: {
     NEXT_PUBLIC_BASE_PATH: isGithubPages ? `/${repoName}` : '',
   },
+  // Solo en desarrollo local: "/" te manda al sitio real (public/index.html).
+  // No se incluye en el build de GitHub Pages porque "output: export" no soporta rewrites
+  // (y ahí no hace falta: el hosting estático ya sirve index.html en la raíz solo).
+  ...(!isGithubPages ? {
+    async rewrites() {
+      return [{ source: '/', destination: '/index.html' }];
+    },
+  } : {}),
 };
 
 module.exports = nextConfig;

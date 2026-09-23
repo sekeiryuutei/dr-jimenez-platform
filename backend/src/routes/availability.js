@@ -3,6 +3,9 @@ const pool = require('../db/pool');
 
 const router = express.Router();
 
+// La web pública solo agenda la valoración inicial: bloques de 20 minutos.
+const SLOT_MINUTES = 20;
+
 // GET /api/availability?date=2026-08-12 -> horarios libres/ocupados ese día
 router.get('/', async (req, res) => {
   const { date } = req.query;
@@ -18,10 +21,39 @@ router.get('/', async (req, res) => {
     if (blocks.length === 0) return res.json({ date, slots: [] });
 
     const { rows: booked } = await pool.query(
-      `SELECT start_time FROM appointments WHERE appointment_date = $1 AND status != 'cancelled'`,
+      `SELECT start_time, duration_minutes FROM appointments WHERE appointment_date = $1 AND status != 'cancelled'`,
       [date]
     );
-    const bookedTimes = new Set(booked.map(b => b.start_time.slice(0, 5)));
+
+    function toMinutes(hhmm) {
+      const [h, m] = hhmm.slice(0, 5).split(':').map(Number);
+      return h * 60 + m;
+    }
+
+    function isOccupied(slotStartMinutes) {
+      const slotEnd = slotStartMinutes + SLOT_MINUTES;
+      return booked.some(({ start_time, duration_minutes }) => {
+        const apptStart = toMinutes(start_time);
+        const apptEnd = apptStart + (duration_minutes || SLOT_MINUTES);
+        // Se solapan si uno empieza antes de que el otro termine, en ambos sentidos.
+        return slotStartMinutes < apptEnd && apptStart < slotEnd;
+      });
+    }
+
+    const { rows: blocked } = await pool.query(
+      `SELECT start_time, end_time FROM blocked_slots WHERE block_date = $1`,
+      [date]
+    );
+
+    function isBlocked(time) {
+      const [h, m] = time.split(':').map(Number);
+      const minutes = h * 60 + m;
+      return blocked.some(({ start_time, end_time }) => {
+        const [sh, sm] = start_time.slice(0, 5).split(':').map(Number);
+        const [eh, em] = end_time.slice(0, 5).split(':').map(Number);
+        return minutes >= sh * 60 + sm && minutes < eh * 60 + em;
+      });
+    }
 
     const slots = [];
     blocks.forEach(({ start_time, end_time }) => {
@@ -29,9 +61,10 @@ router.get('/', async (req, res) => {
       const [endH, endM] = end_time.slice(0, 5).split(':').map(Number);
       while (h < endH || (h === endH && m < endM)) {
         const time = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
-        slots.push({ time, available: !bookedTimes.has(time) });
-        m += 30;
-        if (m >= 60) { m = 0; h += 1; }
+        const slotMinutes = h * 60 + m;
+        slots.push({ time, available: !isOccupied(slotMinutes) && !isBlocked(time) });
+        m += SLOT_MINUTES;
+        while (m >= 60) { m -= 60; h += 1; }
       }
     });
 

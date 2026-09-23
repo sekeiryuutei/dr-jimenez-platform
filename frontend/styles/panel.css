@@ -1,0 +1,165 @@
+/* ============================================================
+   Sistema de diseño del panel — mismo lenguaje visual del sitio
+   público (negro / gris oscuro / blanco, acento navy, tipografía
+   Playfair Display + Poppins). Se importa una sola vez en _app.js.
+   ============================================================ */
+
+:root {
+  --navy: #123a5c;
+  --navy-light: #4d7ea8;
+  --steel: #7f9fa2;
+  --black: #0a0a0a;
+  --charcoal: #151515;
+  --darkgray: #1c1c1a;
+  --line: #2b2b29;
+  --line-soft: #232321;
+  --white: #f6f5f2;
+  --offwhite: #c9c8c3;
+  --midgray: #8a8a86;
+  --gold: #d9b56b;
+  --green: #7fb88f;
+  --red: #c97f7f;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  background: var(--black);
+  color: var(--white);
+  font-family: 'Poppins', -apple-system, sans-serif;
+  font-weight: 300;
+  margin: 0;
+}
+
+.panel-body { min-height: 100vh; }
+
+/* ---------- Navegación ---------- */
+.panel-nav {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 20px 6vw; border-bottom: 1px solid rgba(255,255,255,0.06);
+  position: sticky; top: 0; z-index: 50;
+  background: rgba(10,10,10,0.82); backdrop-filter: blur(10px);
+}
+.panel-brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+.panel-brand svg { width: 26px; height: auto; flex-shrink: 0; }
+.panel-brand-text .name { font-family: 'Playfair Display', serif; font-size: 16px; color: var(--white); letter-spacing: 0.02em; }
+.panel-brand-text .sub { font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--steel); }
+.panel-links { display: flex; align-items: center; gap: 28px; }
+.panel-links a {
+  color: var(--offwhite); text-decoration: none; font-size: 13px;
+  position: relative; padding-bottom: 4px; transition: color 0.25s;
+}
+.panel-links a:hover { color: var(--white); }
+.panel-links a.active { color: var(--navy-light); }
+.panel-links a.active::after {
+  content: ''; position: absolute; left: 0; right: 0; bottom: -4px; height: 1px; background: var(--navy-light);
+}
+.panel-logout {
+  background: transparent; border: 1px solid var(--line); color: var(--offwhite);
+  padding: 8px 16px; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;
+  cursor: pointer; transition: all 0.25s; font-family: 'Poppins', sans-serif;
+}
+.panel-logout:hover { border-color: var(--navy-light); color: var(--white); }
+
+/* ---------- Contenido ---------- */
+.panel-content { padding: 56px 6vw 100px; max-width: 1080px; margin: 0 auto; }
+.panel-eyebrow { font-size: 11px; letter-spacing: 0.24em; text-transform: uppercase; color: var(--steel); margin-bottom: 12px; }
+.panel-title { font-family: 'Playfair Display', serif; font-weight: 400; font-size: clamp(28px, 3vw, 40px); margin: 0 0 10px; color: var(--white); }
+.panel-subtitle { color: var(--midgray); font-size: 14px; line-height: 1.7; margin: 0 0 32px; max-width: 640px; }
+.panel-section { margin-bottom: 64px; }
+.panel-section-title {
+  font-family: 'Playfair Display', serif; font-weight: 400; font-size: 24px; color: var(--white);
+  margin: 0 0 6px; padding-bottom: 14px; border-bottom: 1px solid var(--line);
+}
+.panel-section-hint { color: var(--midgray); font-size: 13px; margin: 12px 0 20px; }
+
+/* ---------- Tarjetas / filas de lista ---------- */
+.panel-card { background: var(--charcoal); border: 1px solid var(--line); padding: 26px 28px; }
+.panel-list { display: flex; flex-direction: column; gap: 1px; background: var(--line); border: 1px solid var(--line); }
+.panel-row {
+  background: var(--charcoal); padding: 18px 22px; display: flex; justify-content: space-between;
+  align-items: center; gap: 18px; flex-wrap: wrap; transition: background 0.2s;
+}
+.panel-row:hover { background: #1a1a18; }
+.panel-row-main { font-size: 14px; color: var(--white); }
+.panel-row-meta { font-size: 12px; color: var(--midgray); margin-top: 3px; }
+.panel-row-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+
+/* ---------- Badges de estado ---------- */
+.panel-badge { font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; padding: 5px 12px; border-radius: 20px; border: 1px solid var(--line); display: inline-block; }
+.badge-pending { color: var(--gold); border-color: #5a4a2c; }
+.badge-confirmed { color: var(--green); border-color: #2c4a35; }
+.badge-completed { color: var(--steel); border-color: #2c3a3c; }
+.badge-cancelled { color: var(--red); border-color: #4a2c2c; }
+
+/* ---------- Botones ---------- */
+.panel-btn {
+  display: inline-flex; align-items: center; justify-content: center; background: transparent;
+  border: 1px solid var(--line); color: var(--offwhite); padding: 9px 18px; font-size: 10px;
+  letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; transition: all 0.2s;
+  font-family: 'Poppins', sans-serif;
+}
+.panel-btn:hover { border-color: var(--navy-light); color: var(--white); }
+.panel-btn:disabled { opacity: 0.5; cursor: default; }
+.panel-btn-primary { background: var(--navy-light); border-color: var(--navy-light); color: #fff; }
+.panel-btn-primary:hover { background: #5f92bc; border-color: #5f92bc; }
+.panel-btn-danger { border-color: #4a2c2c; color: var(--red); }
+.panel-btn-danger:hover { border-color: var(--red); color: var(--red); }
+.panel-btn-block { width: 100%; padding: 13px 0; font-size: 12px; }
+
+/* ---------- Formularios ---------- */
+.panel-label { display: block; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--steel); margin: 16px 0 8px; }
+.panel-input, .panel-select {
+  width: 100%; background: var(--darkgray); border: 1px solid var(--line); color: var(--white);
+  padding: 11px 14px; font-family: 'Poppins', sans-serif; font-size: 13px; font-weight: 300; transition: border-color 0.2s;
+}
+.panel-input:focus, .panel-select:focus { outline: none; border-color: var(--navy-light); }
+.panel-form-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; align-items: end; margin-bottom: 16px; }
+
+/* ---------- Estados vacíos / mensajes ---------- */
+.panel-empty { color: var(--midgray); font-size: 13px; padding: 34px 0; text-align: center; border: 1px dashed var(--line); }
+.panel-msg { font-size: 12px; margin-top: 14px; }
+.panel-msg.success { color: var(--green); }
+.panel-msg.error { color: var(--red); }
+.panel-notice { font-size: 12px; color: var(--gold); background: rgba(217,181,107,0.08); border: 1px solid #5a4a2c; padding: 14px 16px; line-height: 1.6; }
+
+/* ---------- Login (doctor y paciente) ---------- */
+.panel-login-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; position: relative; overflow: hidden; }
+.panel-login-bg {
+  position: absolute; inset: -10%; opacity: 0.5; pointer-events: none;
+  background: radial-gradient(ellipse 60% 50% at 72% 38%, rgba(18,58,92,0.35), transparent 70%);
+}
+.panel-login-box { position: relative; z-index: 2; width: 100%; max-width: 400px; background: var(--charcoal); border: 1px solid var(--line); padding: 48px 40px; }
+.panel-login-logo { display: flex; justify-content: center; margin-bottom: 22px; }
+.panel-login-title { font-family: 'Playfair Display', serif; font-weight: 400; font-size: 28px; text-align: center; margin: 0 0 8px; }
+.panel-login-hint { font-size: 12px; color: var(--midgray); text-align: center; line-height: 1.6; margin-bottom: 30px; }
+
+/* ---------- Imágenes / miniaturas (módulo de medios) ---------- */
+.panel-thumb-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 20px; }
+.panel-thumb-card { background: var(--charcoal); border: 1px solid var(--line); padding: 16px; transition: border-color 0.2s; }
+.panel-thumb-card:hover { border-color: #3a3a38; }
+.panel-thumb { aspect-ratio: 4/3; background: var(--darkgray); margin-bottom: 12px; overflow: hidden; }
+.panel-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.panel-thumb-empty { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #4a4a48; text-transform: uppercase; letter-spacing: 0.08em; }
+.panel-gallery-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px; }
+.panel-gallery-item { position: relative; aspect-ratio: 4/5; background: var(--charcoal); border: 1px solid var(--line); overflow: hidden; }
+.panel-gallery-item img { width: 100%; height: 100%; object-fit: cover; }
+.panel-gallery-remove {
+  position: absolute; bottom: 8px; left: 8px; right: 8px; background: rgba(10,10,10,0.9);
+  border: 1px solid #4a2c2c; color: var(--red); padding: 6px 0; font-size: 10px; letter-spacing: 0.06em;
+  text-transform: uppercase; cursor: pointer; font-family: 'Poppins', sans-serif;
+}
+.panel-upload-label {
+  display: inline-block; border: 1px solid var(--navy-light); color: #fff; padding: 9px 18px;
+  font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; cursor: pointer; text-align: center;
+}
+
+/* ---------- Cobro QR ---------- */
+.panel-charge-result { margin-top: 40px; text-align: center; background: var(--charcoal); border: 1px solid var(--line); padding: 34px; }
+.panel-qr { width: 220px; height: 220px; margin: 0 auto 18px; background: #fff; padding: 10px; }
+
+/* ---------- Responsive ---------- */
+@media (max-width: 860px) {
+  .panel-links { display: none; }
+  .panel-content { padding: 40px 6vw 80px; }
+}

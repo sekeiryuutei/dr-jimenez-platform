@@ -12,6 +12,9 @@ function requireAuth(req, res, next) {
 
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET);
+    if (payload.role !== 'doctor') {
+      return res.status(403).json({ error: 'Esta sección es solo para el doctor' });
+    }
     req.doctor = payload;
     next();
   } catch (err) {
