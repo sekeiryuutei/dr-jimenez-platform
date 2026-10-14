@@ -546,8 +546,10 @@
 <script>
 // URL de tu backend real en Render
 // En local (Docker) habla con tu backend local; en producción, con el de Render.
-const IS_LOCAL = ['localhost', '127.0.0.1'].includes(window.location.hostname);
-const BACKEND_URL = IS_LOCAL ? 'http://localhost:4000' : 'https://dr-jimenez-platform.onrender.com';
+const HOST = window.location.hostname;
+const IS_LOCAL = ['localhost', '127.0.0.1'].includes(HOST);
+const IS_LAN = /^(192\.168\.|10\.|172\.(1[6-9]|2\d|3[01])\.)/.test(HOST);
+const BACKEND_URL = IS_LOCAL ? 'http://localhost:4000' : (IS_LAN ? `http://${HOST}:4000` : (HOST.endsWith('.github.io') ? 'https://dr-jimenez-platform.onrender.com' : ''));
 
 // Detecta si estamos publicados bajo /nombre-del-repo/ (GitHub Pages) o en la raíz (local)
 const SITE_BASE = (function(){

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import PanelNav from '../../components/PanelNav';
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'https://dr-jimenez-platform.onrender.com';
+const BACKEND_URL = (typeof window !== 'undefined' && window.location.hostname && !['localhost', '127.0.0.1'].includes(window.location.hostname)) ? `http://${window.location.hostname}:4000` : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000');
 
 export default function Schedule() {
   const router = useRouter();
@@ -27,9 +27,9 @@ export default function Schedule() {
     setError('');
     try {
       const [svcRes, apptRes, blkRes] = await Promise.all([
-        fetch(`${BACKEND_URL}/api/services`),
-        fetch(`${BACKEND_URL}/api/appointments`, { headers: authHeaders() }),
-        fetch(`${BACKEND_URL}/api/admin/blocked-slots`, { headers: authHeaders() }),
+        fetch(`/api/services`),
+        fetch(`/api/appointments`, { headers: authHeaders() }),
+        fetch(`/api/admin/blocked-slots`, { headers: authHeaders() }),
       ]);
       if (apptRes.status === 401) { router.replace('/doctor/login'); return; }
       setServices(await svcRes.json());
@@ -49,7 +49,7 @@ export default function Schedule() {
     setBusy(true);
     setFormMsg('');
     try {
-      const res = await fetch(`${BACKEND_URL}/api/admin/appointments`, { method: 'POST', headers: authHeaders(), body: JSON.stringify(newAppt) });
+      const res = await fetch(`/api/admin/appointments`, { method: 'POST', headers: authHeaders(), body: JSON.stringify(newAppt) });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Error al crear la cita');
       setFormMsg(data.account_created ? 'Cita creada. Se generó una cuenta nueva para el paciente.' : 'Cita creada.');
@@ -64,7 +64,7 @@ export default function Schedule() {
 
   async function saveReschedule(id, date, time) {
     try {
-      const res = await fetch(`${BACKEND_URL}/api/admin/appointments/${id}/reschedule`, { method: 'PATCH', headers: authHeaders(), body: JSON.stringify({ appointment_date: date, start_time: time }) });
+      const res = await fetch(`/api/admin/appointments/${id}/reschedule`, { method: 'PATCH', headers: authHeaders(), body: JSON.stringify({ appointment_date: date, start_time: time }) });
       if (!res.ok) throw new Error((await res.json()).error || 'No se pudo reagendar');
       setRescheduling(null);
       loadAll();
@@ -99,7 +99,7 @@ export default function Schedule() {
     }
 
     try {
-      const res = await fetch(`${BACKEND_URL}/api/appointments/${id}`, { method: 'PATCH', headers: authHeaders(), body: JSON.stringify(body) });
+      const res = await fetch(`/api/appointments/${id}`, { method: 'PATCH', headers: authHeaders(), body: JSON.stringify(body) });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'No se pudo actualizar');
       loadAll();
@@ -117,7 +117,7 @@ export default function Schedule() {
       return;
     }
     try {
-      const res = await fetch(`${BACKEND_URL}/api/appointments/${id}/duration`, {
+      const res = await fetch(`/api/appointments/${id}/duration`, {
         method: 'PATCH', headers: authHeaders(), body: JSON.stringify({ duration_minutes: minutes }),
       });
       if (!res.ok) throw new Error((await res.json()).error || 'No se pudo actualizar la duración');
@@ -130,7 +130,7 @@ export default function Schedule() {
   async function resetPatientPassword(patientId, email) {
     if (!confirm(`¿Generar una contraseña nueva y reenviarla a ${email}?`)) return;
     try {
-      const res = await fetch(`${BACKEND_URL}/api/admin/patients/${patientId}/reset-password`, { method: 'POST', headers: authHeaders() });
+      const res = await fetch(`/api/admin/patients/${patientId}/reset-password`, { method: 'POST', headers: authHeaders() });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'No se pudo restablecer');
       alert(`Contraseña nueva enviada a ${data.email}.`);
@@ -143,7 +143,7 @@ export default function Schedule() {
     const newEmail = prompt('Nuevo correo de acceso para este paciente:', currentEmail);
     if (!newEmail || newEmail === currentEmail) return;
     try {
-      const res = await fetch(`${BACKEND_URL}/api/admin/patients/${patientId}`, {
+      const res = await fetch(`/api/admin/patients/${patientId}`, {
         method: 'PATCH', headers: authHeaders(), body: JSON.stringify({ email: newEmail }),
       });
       const data = await res.json();
@@ -158,7 +158,7 @@ export default function Schedule() {
     e.preventDefault();
     setBusy(true);
     try {
-      const res = await fetch(`${BACKEND_URL}/api/admin/blocked-slots`, { method: 'POST', headers: authHeaders(), body: JSON.stringify(newBlock) });
+      const res = await fetch(`/api/admin/blocked-slots`, { method: 'POST', headers: authHeaders(), body: JSON.stringify(newBlock) });
       if (!res.ok) throw new Error((await res.json()).error || 'Error al bloquear');
       setNewBlock({ block_date: '', start_time: '', end_time: '', reason: '' });
       loadAll();
@@ -172,7 +172,7 @@ export default function Schedule() {
   async function removeBlock(id) {
     if (!confirm('¿Quitar este bloqueo?')) return;
     try {
-      await fetch(`${BACKEND_URL}/api/admin/blocked-slots/${id}`, { method: 'DELETE', headers: authHeaders() });
+      await fetch(`/api/admin/blocked-slots/${id}`, { method: 'DELETE', headers: authHeaders() });
       loadAll();
     } catch (err) {
       alert(err.message);

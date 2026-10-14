@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import PanelNav from '../../components/PanelNav';
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'https://dr-jimenez-platform.onrender.com';
+const BACKEND_URL = (typeof window !== 'undefined' && window.location.hostname && !['localhost', '127.0.0.1'].includes(window.location.hostname)) ? `http://${window.location.hostname}:4000` : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000');
 
 const DAY_NAMES = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
 
@@ -22,7 +22,7 @@ export default function AvailabilitySettings() {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch(`${BACKEND_URL}/api/admin/availability-settings`, { headers: authHeaders() });
+      const res = await fetch(`/api/admin/availability-settings`, { headers: authHeaders() });
       if (res.status === 401) { router.replace('/doctor/login'); return; }
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Error al cargar el horario');
@@ -45,7 +45,7 @@ export default function AvailabilitySettings() {
     setMessage('');
     setError('');
     try {
-      const res = await fetch(`${BACKEND_URL}/api/admin/availability-settings`, {
+      const res = await fetch(`/api/admin/availability-settings`, {
         method: 'PUT',
         headers: authHeaders(),
         body: JSON.stringify({ days }),

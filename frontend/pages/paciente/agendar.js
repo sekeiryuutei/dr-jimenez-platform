@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import PanelNav from '../../components/PanelNav';
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'https://dr-jimenez-platform.onrender.com';
+const BACKEND_URL = (typeof window !== 'undefined' && window.location.hostname && !['localhost', '127.0.0.1'].includes(window.location.hostname)) ? `http://${window.location.hostname}:4000` : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000');
 
 // Fecha local de hoy (no UTC) -- mismo bug de zona horaria que en /doctor/charge.
 function todayLocalISO() {
@@ -27,7 +27,7 @@ export default function PatientBooking() {
 
   useEffect(() => {
     if (!getToken()) { router.replace('/paciente/login'); return; }
-    fetch(`${BACKEND_URL}/api/services`)
+    fetch(`/api/services`)
       .then((res) => res.json())
       .then(setServices)
       .catch(() => setError('No se pudo cargar el catálogo de servicios'))
@@ -41,7 +41,7 @@ export default function PatientBooking() {
     setSelectedSlot(null);
     setSlots([]);
     try {
-      const res = await fetch(`${BACKEND_URL}/api/availability?date=${date}`);
+      const res = await fetch(`/api/availability?date=${date}`);
       const data = await res.json();
       setSlots(data.slots || []);
     } catch (err) {
@@ -56,7 +56,7 @@ export default function PatientBooking() {
     setBusy(true);
     setMessage('');
     try {
-      const res = await fetch(`${BACKEND_URL}/api/patient/appointments`, {
+      const res = await fetch(`/api/patient/appointments`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${getToken()}` },
         body: JSON.stringify({ service_id: Number(serviceId), appointment_date: date, start_time: selectedSlot }),

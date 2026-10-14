@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'https://dr-jimenez-platform.onrender.com';
+const BACKEND_URL = (typeof window !== 'undefined' && window.location.hostname && !['localhost', '127.0.0.1'].includes(window.location.hostname)) ? `http://${window.location.hostname}:4000` : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000');
 
 export default function MockPayment() {
   const router = useRouter();
@@ -15,7 +15,7 @@ export default function MockPayment() {
 
   useEffect(() => {
     if (!ref) return;
-    fetch(`${BACKEND_URL}/api/mock-payment/${ref}`)
+    fetch(`/api/mock-payment/${ref}`)
       .then(async (res) => {
         const body = await res.json();
         if (!res.ok) throw new Error(body.error || 'No se encontró este cobro');
@@ -28,7 +28,7 @@ export default function MockPayment() {
   async function approve() {
     setBusy(true);
     try {
-      const res = await fetch(`${BACKEND_URL}/api/mock-payment/${ref}/approve`, { method: 'POST' });
+      const res = await fetch(`/api/mock-payment/${ref}/approve`, { method: 'POST' });
       if (res.status === 403) {
         // Wompi real ya está activo: este cobro se procesó (o se procesa) directo en Wompi,
         // no se puede simular. Mostramos el estado real en vez de forzar la simulación.

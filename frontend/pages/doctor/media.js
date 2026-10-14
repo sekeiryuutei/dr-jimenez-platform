@@ -2,11 +2,11 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import PanelNav from '../../components/PanelNav';
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'https://dr-jimenez-platform.onrender.com';
+const BACKEND_URL = (typeof window !== 'undefined' && window.location.hostname && !['localhost', '127.0.0.1'].includes(window.location.hostname)) ? `http://${window.location.hostname}:4000` : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000');
 
 function resolveUrl(url) {
   if (!url) return '';
-  return url.startsWith('/uploads') ? `${BACKEND_URL}${url}` : url;
+  return url.startsWith('/uploads') ? `${url}` : url;
 }
 
 export default function Media() {
@@ -31,9 +31,9 @@ export default function Media() {
     setError('');
     try {
       const [svcRes, galRes, transRes] = await Promise.all([
-        fetch(`${BACKEND_URL}/api/services`),
-        fetch(`${BACKEND_URL}/api/gallery`),
-        fetch(`${BACKEND_URL}/api/transformations`),
+        fetch(`/api/services`),
+        fetch(`/api/gallery`),
+        fetch(`/api/transformations`),
       ]);
       setServices(await svcRes.json());
       setGallery(await galRes.json());
@@ -53,7 +53,7 @@ export default function Media() {
     const form = new FormData();
     form.append('image', file);
     try {
-      const res = await fetch(`${BACKEND_URL}/api/admin/services/${serviceId}/image`, {
+      const res = await fetch(`/api/admin/services/${serviceId}/image`, {
         method: 'POST', headers: { Authorization: `Bearer ${getToken()}` }, body: form,
       });
       if (!res.ok) throw new Error((await res.json()).error || 'Error al subir');
@@ -71,7 +71,7 @@ export default function Media() {
     const form = new FormData();
     form.append('image', file);
     try {
-      const res = await fetch(`${BACKEND_URL}/api/admin/gallery`, {
+      const res = await fetch(`/api/admin/gallery`, {
         method: 'POST', headers: { Authorization: `Bearer ${getToken()}` }, body: form,
       });
       if (!res.ok) throw new Error((await res.json()).error || 'Error al subir');
@@ -87,7 +87,7 @@ export default function Media() {
     if (!confirm('¿Quitar esta foto de la galería?')) return;
     setBusyId('gallery-' + id);
     try {
-      const res = await fetch(`${BACKEND_URL}/api/admin/gallery/${id}`, {
+      const res = await fetch(`/api/admin/gallery/${id}`, {
         method: 'DELETE', headers: { Authorization: `Bearer ${getToken()}` },
       });
       if (!res.ok) throw new Error('No se pudo eliminar');
@@ -109,7 +109,7 @@ export default function Media() {
     form.append('title_es', transformTitle);
     form.append('title_en', transformTitle);
     try {
-      const res = await fetch(`${BACKEND_URL}/api/admin/transformations`, {
+      const res = await fetch(`/api/admin/transformations`, {
         method: 'POST', headers: { Authorization: `Bearer ${getToken()}` }, body: form,
       });
       if (!res.ok) throw new Error((await res.json()).error || 'Error al subir');
@@ -128,7 +128,7 @@ export default function Media() {
     if (!confirm('¿Quitar este caso antes/después?')) return;
     setBusyId('transform-' + id);
     try {
-      const res = await fetch(`${BACKEND_URL}/api/admin/transformations/${id}`, {
+      const res = await fetch(`/api/admin/transformations/${id}`, {
         method: 'DELETE', headers: { Authorization: `Bearer ${getToken()}` },
       });
       if (!res.ok) throw new Error('No se pudo eliminar');

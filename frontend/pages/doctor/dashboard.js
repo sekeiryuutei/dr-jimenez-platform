@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import PanelNav from '../../components/PanelNav';
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'https://dr-jimenez-platform.onrender.com';
+const BACKEND_URL = (typeof window !== 'undefined' && window.location.hostname && !['localhost', '127.0.0.1'].includes(window.location.hostname)) ? `http://${window.location.hostname}:4000` : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000');
 const USD_RATE = 4000;
 
 const STATUS_LABEL = { pending: 'Pendiente', confirmed: 'Confirmada', completed: 'Completada', cancelled: 'Cancelada' };
@@ -34,7 +34,7 @@ export default function Dashboard() {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch(`${BACKEND_URL}/api/appointments`, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await fetch(`/api/appointments`, { headers: { Authorization: `Bearer ${token}` } });
       if (res.status === 401) { localStorage.removeItem('doctor_token'); router.replace('/doctor/login'); return; }
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Error al cargar las citas');
@@ -74,7 +74,7 @@ export default function Dashboard() {
     }
 
     try {
-      const res = await fetch(`${BACKEND_URL}/api/appointments/${id}`, { method: 'PATCH', headers: authHeaders(), body: JSON.stringify(body) });
+      const res = await fetch(`/api/appointments/${id}`, { method: 'PATCH', headers: authHeaders(), body: JSON.stringify(body) });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'No se pudo actualizar');
       loadAppointments();
@@ -86,7 +86,7 @@ export default function Dashboard() {
   async function markPaidCash(id) {
     if (!confirm('¿Confirmas que este paciente ya pagó en efectivo / presencial?')) return;
     try {
-      const res = await fetch(`${BACKEND_URL}/api/appointments/${id}/mark-paid`, { method: 'PATCH', headers: authHeaders() });
+      const res = await fetch(`/api/appointments/${id}/mark-paid`, { method: 'PATCH', headers: authHeaders() });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'No se pudo registrar el pago');
       loadAppointments();
@@ -104,7 +104,7 @@ export default function Dashboard() {
       return;
     }
     try {
-      const res = await fetch(`${BACKEND_URL}/api/appointments/${id}/duration`, {
+      const res = await fetch(`/api/appointments/${id}/duration`, {
         method: 'PATCH', headers: authHeaders(), body: JSON.stringify({ duration_minutes: minutes }),
       });
       if (!res.ok) throw new Error((await res.json()).error || 'No se pudo actualizar la duración');
@@ -117,7 +117,7 @@ export default function Dashboard() {
   async function resetPatientPassword(patientId, email) {
     if (!confirm(`¿Generar una contraseña nueva y reenviarla a ${email}?`)) return;
     try {
-      const res = await fetch(`${BACKEND_URL}/api/admin/patients/${patientId}/reset-password`, { method: 'POST', headers: authHeaders() });
+      const res = await fetch(`/api/admin/patients/${patientId}/reset-password`, { method: 'POST', headers: authHeaders() });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'No se pudo restablecer');
       alert(`Contraseña nueva enviada a ${data.email}.`);
@@ -130,7 +130,7 @@ export default function Dashboard() {
     const newEmail = prompt('Nuevo correo de acceso para este paciente:', currentEmail);
     if (!newEmail || newEmail === currentEmail) return;
     try {
-      const res = await fetch(`${BACKEND_URL}/api/admin/patients/${patientId}`, {
+      const res = await fetch(`/api/admin/patients/${patientId}`, {
         method: 'PATCH', headers: authHeaders(), body: JSON.stringify({ email: newEmail }),
       });
       const data = await res.json();
