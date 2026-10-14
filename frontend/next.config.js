@@ -8,7 +8,8 @@ const isGithubPages = process.env.GITHUB_PAGES === 'true';
 const repoName = 'dr-jimenez-platform'; // <-- cambia esto si tu repo se llama distinto
 
 const nextConfig = {
-  ...(isGithubPages ? { output: 'export' } : {}),
+  // Produccion Docker: standalone adelgaza la imagen. GitHub Pages usa export.
+  ...(isGithubPages ? { output: 'export' } : { output: 'standalone' }),
   images: { unoptimized: true },
   basePath: isGithubPages ? `/${repoName}` : '',
   assetPrefix: isGithubPages ? `/${repoName}/` : '',

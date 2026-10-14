@@ -376,3 +376,44 @@ Las 4 fases funcionales, más las mejoras de diseño y contenido, ya están cons
 5. **Publicar el sitio público de nuevo en GitHub Pages** con todos estos cambios — ahora mismo la última versión publicada ahí es anterior a todo este bloque de trabajo.
 
 Ninguna de estas requiere escribir código nuevo — son básicamente los mismos pasos que ya hicimos juntos para Supabase y Render, una vez decidas que es momento de mostrarle esto al doctor en producción real.
+
+## Producción en Docker (VPS propio, sin Render)
+
+Todo corre en Docker: frontend optimizado (`next start` standalone), backend en
+modo producción (`node`, sin nodemon), Postgres y Caddy como proxy con HTTPS
+automático. Solo Caddy expone puertos (80/443).
+
+**1. Prepara el servidor:** Docker + plugin compose, y un registro A del dominio
+apuntando a la IP del servidor (ej. `consultorio-tudominio.com`).
+
+**2. Clona y configura:**
+```bash
+git clone <repo> && cd dr-jimenez-platform
+cp .env.prod.example .env.prod   # rellenar TODO, sobre todo DOMAIN y claves
+```
+
+**3. Levanta:**
+```bash
+docker compose -f docker-compose.prod.yml up -d --build
+```
+Caddy consigue el certificado solo. Verifica: `https://tu-dominio/health`
+(backend) y `https://tu-dominio/doctor/login` (panel).
+
+**4. Base de datos inicial:** el contenedor `db` se siembra solo con
+`backend/init-db/schema.sql`. Aplica las migraciones una vez:
+```bash
+for m in backend/migrations/migration-*.sql; do
+  docker compose -f docker-compose.prod.yml exec -T db psql -U $POSTGRES_USER -d $POSTGRES_DB -v ON_ERROR_STOP=0 < "$m"
+done
+```
+(Los errores `relation "clients" does not exist` / `column "client_id" does not exist`
+son restos viejos inofensivos: `schema.sql` ya trae el esquema final.)
+
+**5. Backup diario:** el script `../bin/backup-drjimenez.sh` (en el servidor,
+fuera del repo) hace dump + uploads con rotación de 7 días. En el servidor de
+producción, créalo igual y programa el cron `0 3 * * *`.
+
+**Notas:**
+- Desarrollo local sigue igual: `docker compose up` (modo dev con recarga).
+- GitHub Pages solo publica el sitio estático; el panel y la API viven en el VPS.
+- Si cambias el dominio, actualiza `DOMAIN`, `FRONTEND_URL` y reconstruye.

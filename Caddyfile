@@ -1,0 +1,6 @@
+# Dominio de produccion (viene de .env.prod -> DOMAIN).
+# Caddy consigue y renueva el certificado HTTPS solo.
+{$DOMAIN} {
+	encode gzip
+	reverse_proxy frontend:3000
+}
