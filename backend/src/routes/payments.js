@@ -79,7 +79,7 @@ router.post('/admin/payments/charge', requireAuth, async (req, res) => {
 router.get('/mock-payment/:reference', async (req, res) => {
   try {
     const { rows } = await pool.query(
-      `SELECT pay.reference AS reference, pay.amount, pay.status,
+      `SELECT pay.provider_reference AS reference, pay.amount, pay.status,
               s.name_es AS service_name, p.name AS patient_name
        FROM payments pay
        JOIN appointments a ON a.id = pay.appointment_id

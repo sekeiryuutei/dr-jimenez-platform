@@ -54,7 +54,7 @@ export default function PatientBooking() {
   async function confirmBooking() {
     if (!serviceId || !date || !selectedSlot) return;
     setBusy(true);
-    setMessage('');
+    setMessage(null);
     try {
       const res = await fetch(`${BACKEND_URL}/api/patient/appointments`, {
         method: 'POST',
@@ -63,12 +63,12 @@ export default function PatientBooking() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'No se pudo agendar');
-      setMessage('¡Cita agendada! Puedes verla en "Mis citas".');
+      setMessage({ text: '¡Cita agendada con éxito! Puedes verla en "Mis citas".', type: 'success' });
       setSelectedSlot(null);
       setSlots([]);
       setDate('');
     } catch (err) {
-      setMessage(err.message);
+      setMessage({ text: err.message, type: 'error' });
     } finally {
       setBusy(false);
     }
@@ -139,7 +139,7 @@ export default function PatientBooking() {
               {busy ? 'Agendando…' : 'Confirmar cita'}
             </button>
 
-            {message && <p className={`panel-msg ${message.startsWith('¡') ? 'success' : 'error'}`}>{message}</p>}
+            {message && <p className={`panel-msg ${message.type === 'error' ? 'error' : 'success'}`}>{message.text}</p>}
           </>
         )}
       </div>

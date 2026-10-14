@@ -502,6 +502,10 @@
         <input type="text" id="clientName" class="bm-input" data-i18n-placeholder="booking.namePlaceholder" placeholder="Nombre completo" />
         <input type="email" id="clientEmail" class="bm-input" data-i18n-placeholder="booking.emailPlaceholder" placeholder="Email" />
         <input type="tel" id="clientPhone" class="bm-input" data-i18n-placeholder="booking.phonePlaceholder" placeholder="Teléfono" />
+        <label style="display:flex; align-items:flex-start; gap:8px; font-size:0.8rem; color:#8a8a86; cursor:pointer; grid-column: 1 / -1; margin: 4px 0 8px;">
+          <input type="checkbox" id="habeasDataCheck" style="margin-top:2px; accent-color:#4d7ea8;" required />
+          <span data-i18n="booking.habeasData">Acepto la política de tratamiento de datos personales y autorizo el contacto para la gestión de mi cita (Ley 1581 de 2012).</span>
+        </label>
         <button class="cta-btn" id="confirmBtn" data-i18n="booking.confirmBtn">Confirmar valoración</button>
       </div>
 
@@ -615,6 +619,8 @@ const i18n = {
     "booking.loadingSlots":"Buscando horarios...","booking.connError":"No se pudo conectar. Intenta de nuevo.",
     "booking.noSlots":"No hay horarios configurados ese día.",
     "booking.missingFields":"Completa cédula, nombre, email y elige un horario.","booking.sending":"Enviando...",
+    "booking.habeasData":"Acepto la política de tratamiento de datos personales y autorizo el contacto para la gestión de mi cita (Ley 1581 de 2012).",
+    "booking.habeasRequired":"Debes autorizar el tratamiento de datos para poder agendar tu valoración.",
     "booking.success":"¡Valoración solicitada! Te contactaremos para confirmar.",
     "booking.successNewAccount":"¡Listo! Creamos tu cuenta y te enviamos la contraseña a tu correo — con ella puedes ver tus citas en \"Mi cuenta\".",
     "booking.failPrefix":"No se pudo agendar: ",
@@ -661,6 +667,8 @@ const i18n = {
     "booking.loadingSlots":"Checking availability...","booking.connError":"Could not connect. Try again.",
     "booking.noSlots":"No slots configured for that day.",
     "booking.missingFields":"Fill in ID, name, email, and pick a time slot.","booking.sending":"Sending...",
+    "booking.habeasData":"I accept the personal data processing policy and authorize contact for appointment management (Colombian Law 1581).",
+    "booking.habeasRequired":"You must authorize personal data processing to book your assessment.",
     "booking.success":"Assessment requested! We'll reach out to confirm.",
     "booking.successNewAccount":"Done! We created your account and emailed you a password — use it to view your appointments under \"My account\".",
     "booking.failPrefix":"Could not book: ",
@@ -939,8 +947,15 @@ async function confirmBooking(){
   const name = document.getElementById('clientName').value.trim();
   const email = document.getElementById('clientEmail').value.trim();
   const phone = document.getElementById('clientPhone').value.trim();
+  const habeasCheck = document.getElementById('habeasDataCheck');
   const serviceId = document.getElementById('serviceSelect').value;
   const msgEl = document.getElementById('bookingMessage');
+
+  if(!habeasCheck || !habeasCheck.checked){
+    msgEl.textContent = i18n[currentLang]['booking.habeasRequired'] || 'Debes aceptar la política de tratamiento de datos personales.';
+    msgEl.className = 'bm-message error';
+    return;
+  }
 
   if(!cedula || !name || !email || !selectedDate || !selectedSlot){
     msgEl.textContent = i18n[currentLang]['booking.missingFields'];

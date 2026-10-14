@@ -7,6 +7,7 @@ const pool = require('../db/pool');
 const requirePatientAuth = require('../middleware/requirePatientAuth');
 const { sendMail } = require('../utils/email');
 const { buildWompiUrl, isWompiReady } = require('../utils/wompi');
+const { isPastInColombia } = require('../utils/time');
 
 const router = express.Router();
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
@@ -131,6 +132,10 @@ router.post('/patient/appointments', requirePatientAuth, async (req, res) => {
   const { service_id, appointment_date, start_time } = req.body;
   if (!service_id || !appointment_date || !start_time) {
     return res.status(400).json({ error: 'Faltan servicio, fecha y hora' });
+  }
+
+  if (isPastInColombia(appointment_date, start_time)) {
+    return res.status(400).json({ error: 'No es posible agendar citas en fechas u horarios pasados.' });
   }
 
   try {

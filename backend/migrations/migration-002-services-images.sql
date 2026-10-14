@@ -8,7 +8,7 @@ ALTER TABLE services ADD COLUMN IF NOT EXISTS image_url TEXT;
 --    Si ya tienes citas reales que quieres conservar, NO corras estas dos líneas
 --    y en su lugar reasigna manualmente el service_id de esas citas antes de continuar.
 TRUNCATE appointments RESTART IDENTITY CASCADE;
-TRUNCATE clients RESTART IDENTITY CASCADE;
+TRUNCATE patients RESTART IDENTITY CASCADE;
 
 -- 3) Reemplazar el catálogo de servicios viejo por el real
 TRUNCATE services RESTART IDENTITY CASCADE;

@@ -6,11 +6,12 @@ const LOGO = (
 );
 
 const DOCTOR_LINKS = [
-  { href: '/doctor/dashboard', label: 'Citas' },
-  { href: '/doctor/media', label: 'Imágenes' },
-  { href: '/doctor/schedule', label: 'Agenda' },
-  { href: '/doctor/settings', label: 'Horario' },
+  { href: '/doctor/dashboard', label: 'Citas y Agenda' },
+  { href: '/doctor/history', label: 'Historial' },
+  { href: '/doctor/analytics', label: 'Métricas' },
   { href: '/doctor/charge', label: 'Cobros' },
+  { href: '/doctor/media', label: 'Imágenes' },
+  { href: '/doctor/settings', label: 'Horario' },
   { href: '/doctor/blog', label: 'Blog' },
 ];
 

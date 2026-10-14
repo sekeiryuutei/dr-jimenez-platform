@@ -1,5 +1,6 @@
 const express = require('express');
 const pool = require('../db/pool');
+const { isPastInColombia, getColombiaWeekday, timeToMinutes } = require('../utils/time');
 
 const router = express.Router();
 
@@ -12,7 +13,7 @@ router.get('/', async (req, res) => {
   if (!date) return res.status(400).json({ error: 'Parámetro date requerido (YYYY-MM-DD)' });
 
   try {
-    const weekday = new Date(date + 'T00:00:00').getDay();
+    const weekday = getColombiaWeekday(date);
 
     const { rows: blocks } = await pool.query(
       `SELECT start_time, end_time FROM availability_blocks WHERE weekday = $1 AND active = true`,
@@ -25,15 +26,10 @@ router.get('/', async (req, res) => {
       [date]
     );
 
-    function toMinutes(hhmm) {
-      const [h, m] = hhmm.slice(0, 5).split(':').map(Number);
-      return h * 60 + m;
-    }
-
     function isOccupied(slotStartMinutes) {
       const slotEnd = slotStartMinutes + SLOT_MINUTES;
       return booked.some(({ start_time, duration_minutes }) => {
-        const apptStart = toMinutes(start_time);
+        const apptStart = timeToMinutes(start_time);
         const apptEnd = apptStart + (duration_minutes || SLOT_MINUTES);
         // Se solapan si uno empieza antes de que el otro termine, en ambos sentidos.
         return slotStartMinutes < apptEnd && apptStart < slotEnd;
@@ -46,12 +42,11 @@ router.get('/', async (req, res) => {
     );
 
     function isBlocked(time) {
-      const [h, m] = time.split(':').map(Number);
-      const minutes = h * 60 + m;
+      const minutes = timeToMinutes(time);
       return blocked.some(({ start_time, end_time }) => {
-        const [sh, sm] = start_time.slice(0, 5).split(':').map(Number);
-        const [eh, em] = end_time.slice(0, 5).split(':').map(Number);
-        return minutes >= sh * 60 + sm && minutes < eh * 60 + em;
+        const sm = timeToMinutes(start_time);
+        const em = timeToMinutes(end_time);
+        return minutes >= sm && minutes < em;
       });
     }
 
@@ -62,7 +57,10 @@ router.get('/', async (req, res) => {
       while (h < endH || (h === endH && m < endM)) {
         const time = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
         const slotMinutes = h * 60 + m;
-        slots.push({ time, available: !isOccupied(slotMinutes) && !isBlocked(time) });
+        // Si el horario ya pasó en Colombia para el día de hoy, marcarlo disponible: false
+        const isPast = isPastInColombia(date, time);
+        const isAvail = !isPast && !isOccupied(slotMinutes) && !isBlocked(time);
+        slots.push({ time, available: isAvail });
         m += SLOT_MINUTES;
         while (m >= 60) { m -= 60; h += 1; }
       }

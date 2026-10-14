@@ -6,6 +6,7 @@ const requireAuth = require('../middleware/requireAuth');
 const { sendMail } = require('../utils/email');
 const { sendWhatsApp } = require('../utils/whatsapp');
 const { findOrValidatePatient } = require('../utils/patients');
+const { isPastInColombia } = require('../utils/time');
 
 const router = express.Router();
 
@@ -24,6 +25,10 @@ router.post('/', async (req, res) => {
 
   if (!cedula || !client_name || !client_email || !service_id || !appointment_date || !start_time) {
     return res.status(400).json({ error: 'Faltan campos requeridos (cédula, nombre, email, servicio, fecha, hora)' });
+  }
+
+  if (isPastInColombia(appointment_date, start_time)) {
+    return res.status(400).json({ error: 'No es posible agendar citas en fechas u horarios pasados.' });
   }
 
   const db = await pool.connect();
@@ -233,6 +238,130 @@ router.get('/stats/revenue', requireAuth, async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error al calcular ingresos' });
+  }
+});
+
+// GET /api/appointments/admin/history -> Historial paginado con filtros
+router.get('/admin/history', requireAuth, async (req, res) => {
+  const { status, search, start_date, end_date, page = 1, limit = 15 } = req.query;
+  const offset = (Math.max(1, parseInt(page, 10)) - 1) * parseInt(limit, 10);
+
+  const conditions = [];
+  const params = [];
+  let pIdx = 1;
+
+  if (status && status !== 'all') {
+    conditions.push(`a.status = $${pIdx++}`);
+    params.push(status);
+  }
+  if (start_date) {
+    conditions.push(`a.appointment_date >= $${pIdx++}`);
+    params.push(start_date);
+  }
+  if (end_date) {
+    conditions.push(`a.appointment_date <= $${pIdx++}`);
+    params.push(end_date);
+  }
+  if (search && search.trim()) {
+    conditions.push(`(p.name ILIKE $${pIdx} OR p.cedula ILIKE $${pIdx} OR p.email ILIKE $${pIdx} OR s.name_es ILIKE $${pIdx})`);
+    params.push(`%${search.trim()}%`);
+    pIdx++;
+  }
+
+  const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+
+  try {
+    const countQuery = `
+      SELECT COUNT(*) AS total
+      FROM appointments a
+      JOIN patients p ON p.id = a.patient_id
+      JOIN services s ON s.id = a.service_id
+      ${whereClause}
+    `;
+    const { rows: countRows } = await pool.query(countQuery, params);
+    const total = parseInt(countRows[0]?.total || 0, 10);
+
+    const listQuery = `
+      SELECT a.id, a.appointment_date, a.start_time, a.duration_minutes, a.status,
+             a.amount_paid, a.payment_status,
+             p.id AS patient_id, p.name AS client_name, p.cedula, p.email AS client_email, p.phone AS client_phone,
+             s.id AS service_id, s.name_es AS service_name
+      FROM appointments a
+      JOIN patients p ON p.id = a.patient_id
+      JOIN services s ON s.id = a.service_id
+      ${whereClause}
+      ORDER BY a.appointment_date DESC, a.start_time DESC
+      LIMIT $${pIdx++} OFFSET $${pIdx++}
+    `;
+    const { rows: items } = await pool.query(listQuery, [...params, parseInt(limit, 10), offset]);
+
+    res.json({
+      total,
+      page: parseInt(page, 10),
+      limit: parseInt(limit, 10),
+      pages: Math.ceil(total / parseInt(limit, 10)) || 1,
+      items,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al consultar el historial de citas' });
+  }
+});
+
+// GET /api/appointments/admin/analytics -> Métricas consolidadas (servicios, ingresos, asistencia, días)
+router.get('/admin/analytics', requireAuth, async (req, res) => {
+  try {
+    // 1. Citas por servicio
+    const { rows: byService } = await pool.query(`
+      SELECT s.name_es AS name, COUNT(a.id) AS count
+      FROM appointments a
+      JOIN services s ON s.id = a.service_id
+      GROUP BY s.name_es
+      ORDER BY count DESC
+    `);
+
+    // 2. Ingresos: Online (Wompi) vs Efectivo (Cash)
+    const { rows: revenueSplit } = await pool.query(`
+      SELECT 
+        COALESCE(SUM(CASE WHEN pay.provider = 'wompi' AND pay.status = 'approved' THEN pay.amount ELSE 0 END), 0) AS online,
+        COALESCE(SUM(CASE WHEN a.payment_status = 'paid' AND (pay.id IS NULL OR pay.provider = 'cash') THEN a.amount_paid ELSE 0 END), 0) AS cash
+      FROM appointments a
+      LEFT JOIN payments pay ON pay.appointment_id = a.id
+      WHERE a.payment_status = 'paid'
+    `);
+
+    // 3. Asistencia vs Cancelación
+    const { rows: attendance } = await pool.query(`
+      SELECT 
+        COUNT(CASE WHEN status = 'completed' THEN 1 END) AS completed,
+        COUNT(CASE WHEN status = 'confirmed' THEN 1 END) AS confirmed,
+        COUNT(CASE WHEN status = 'pending' THEN 1 END) AS pending,
+        COUNT(CASE WHEN status = 'cancelled' THEN 1 END) AS cancelled
+      FROM appointments
+    `);
+
+    // 4. Citas por día (últimos 30 días)
+    const { rows: byDay } = await pool.query(`
+      SELECT appointment_date::text AS date, COUNT(id) AS count
+      FROM appointments
+      WHERE appointment_date >= CURRENT_DATE - INTERVAL '30 days'
+      GROUP BY appointment_date
+      ORDER BY appointment_date ASC
+    `);
+
+    // 5. Total de días bloqueados
+    const { rows: blockedCount } = await pool.query(`SELECT COUNT(*) AS count FROM blocked_slots`);
+
+    res.json({
+      byService,
+      revenue: revenueSplit[0] || { online: 0, cash: 0 },
+      attendance: attendance[0] || { completed: 0, confirmed: 0, pending: 0, cancelled: 0 },
+      byDay,
+      totalBlockedSlots: parseInt(blockedCount[0]?.count || 0, 10),
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al calcular las métricas' });
   }
 });
 
