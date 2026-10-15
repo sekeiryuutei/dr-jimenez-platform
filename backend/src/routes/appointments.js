@@ -6,6 +6,7 @@ const requireAuth = require('../middleware/requireAuth');
 const { sendMail } = require('../utils/email');
 const { sendWhatsApp } = require('../utils/whatsapp');
 const { findOrValidatePatient } = require('../utils/patients');
+const { bookingLimiter } = require('../middleware/security');
 const { isPastInColombia } = require('../utils/time');
 
 const router = express.Router();

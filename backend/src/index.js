@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const { apiLimiter } = require('./middleware/security');
 const path = require('path');
 
 const servicesRouter = require('./routes/services');
@@ -16,10 +17,12 @@ const scheduleRouter = require('./routes/schedule');
 const blogRouter = require('./routes/blog');
 
 const app = express();
+app.set('trust proxy', 1); // cloudflare / proxy: respeta X-Forwarded-*
 
 // 1. Headers de seguridad con Helmet (permite visualización cruzada de uploads/imágenes)
 app.use(
   helmet({
+    hsts: false, // la red local se sirve por http; con HSTS el navegador dejaria de entrar
     crossOriginResourcePolicy: { policy: 'cross-origin' },
   })
 );
@@ -48,14 +51,8 @@ app.use(
 app.use(express.json());
 app.use('/api/', apiLimiter);
 
-// 3. Rate limiting contra ataques de fuerza bruta en logins
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 20, // Máximo 20 intentos por IP cada 15 min
-  message: { error: 'Demasiados intentos de acceso desde esta dirección. Por favor espera 15 minutos.' },
-  standardHeaders: true,
-  legacyHeaders: false,
-});
+// (login: el rate limiting vive en cada ruta con authLimiter de middleware/security,
+// que ademas cubre restablecimiento de contrasena)
 
 // Rate limiting general contra abusos/DDoS ligero
 const generalLimiter = rateLimit({
@@ -66,9 +63,6 @@ const generalLimiter = rateLimit({
 });
 
 app.use('/api', generalLimiter);
-app.use('/api/auth/login', authLimiter);
-app.use('/api/patient-auth/login', authLimiter);
-app.use('/api/patient-auth/forgot-password', authLimiter);
 
 // 4. Archivos subidos desde el panel del doctor (imágenes de servicios, galería, blog)
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
@@ -91,11 +85,24 @@ app.use((req, res) => {
   res.status(404).json({ error: 'Endpoint no encontrado' });
 });
 
+// Errores de subida (tipo/tamano de archivo) como JSON 400, no HTML 500.
+app.use((err, req, res, next) => {
+  if (!err) return next();
+  if (err.code === 'LIMIT_FILE_SIZE') return res.status(400).json({ error: 'La imagen supera los 5 MB' });
+  if (err.message && /fotos|imagen/i.test(err.message)) return res.status(400).json({ error: err.message });
+  next(err);
+});
+
 // 7. Manejo global de errores (500 JSON)
 app.use((err, req, res, next) => {
   console.error('Error no capturado:', err);
-  res.status(err.status || 500).json({ error: err.message || 'Error interno del servidor' });
+  const status = err.status || 500;
+  res.status(status).json({ error: status < 500 && err.message ? err.message : 'Error interno del servidor' });
 });
 
 const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => console.log(`API corriendo en http://localhost:${PORT}`));
+if (require.main === module) {
+  app.listen(PORT, () => console.log(`API corriendo en http://localhost:${PORT}`));
+}
+
+module.exports = app; // para las pruebas (supertest) sin levantar puerto

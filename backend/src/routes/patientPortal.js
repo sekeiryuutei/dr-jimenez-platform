@@ -9,6 +9,9 @@ const { sendMail } = require('../utils/email');
 const { buildWompiUrl, isWompiReady } = require('../utils/wompi');
 const { isPastInColombia } = require('../utils/time');
 
+const { authLimiter } = require('../middleware/security');
+const { getBaseUrl } = require('../utils/urls');
+
 const router = express.Router();
 // POST /api/patient-auth/login -> login del paciente (con email o cédula)
 router.post('/patient-auth/login', authLimiter, async (req, res) => {
