@@ -46,6 +46,7 @@ app.use(
 );
 
 app.use(express.json());
+app.use('/api/', apiLimiter);
 
 // 3. Rate limiting contra ataques de fuerza bruta en logins
 const authLimiter = rateLimit({

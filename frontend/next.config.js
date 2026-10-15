@@ -20,7 +20,14 @@ const nextConfig = {
   // (y ahí no hace falta: el hosting estático ya sirve index.html en la raíz solo).
   ...(!isGithubPages ? {
     async rewrites() {
-      return [{ source: '/', destination: '/index.html' }];
+      return [
+        { source: '/', destination: '/index.html' },
+        // El panel y el sitio hablan con el backend por el MISMO origen.
+        // Asi funciona en LAN, en tunel https (cloudflare) o en cualquier dominio,
+        // sin pelear con CORS, puertos ni contenido mixto http/https.
+        { source: '/api/:path*', destination: 'http://backend:4000/api/:path*' },
+        { source: '/uploads/:path*', destination: 'http://backend:4000/uploads/:path*' },
+      ];
     },
   } : {}),
 };

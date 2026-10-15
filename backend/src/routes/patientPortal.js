@@ -10,10 +10,8 @@ const { buildWompiUrl, isWompiReady } = require('../utils/wompi');
 const { isPastInColombia } = require('../utils/time');
 
 const router = express.Router();
-const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
-
 // POST /api/patient-auth/login -> login del paciente (con email o cédula)
-router.post('/patient-auth/login', async (req, res) => {
+router.post('/patient-auth/login', authLimiter, async (req, res) => {
   const { identifier, password } = req.body;
   if (!identifier || !password) {
     return res.status(400).json({ error: 'Usuario y contraseña requeridos' });
@@ -47,7 +45,7 @@ router.post('/patient-auth/login', async (req, res) => {
 });
 
 // POST /api/patient-auth/forgot-password -> solicita el enlace de restablecimiento
-router.post('/patient-auth/forgot-password', async (req, res) => {
+router.post('/patient-auth/forgot-password', authLimiter, async (req, res) => {
   const { identifier } = req.body;
   if (!identifier) return res.status(400).json({ error: 'Ingresa tu correo o cédula' });
 
@@ -71,7 +69,7 @@ router.post('/patient-auth/forgot-password', async (req, res) => {
       [patient.id, token, expiresAt]
     );
 
-    const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/paciente/restablecer?token=${token}`;
+    const resetUrl = `${getBaseUrl(req)}/paciente/restablecer?token=${token}`;
     await sendMail({
       to: patient.email,
       subject: 'Restablece tu contraseña — Dr. Jorge Jiménez',
@@ -86,7 +84,7 @@ router.post('/patient-auth/forgot-password', async (req, res) => {
 });
 
 // POST /api/patient-auth/reset-password -> establece la nueva contraseña con el token del correo
-router.post('/patient-auth/reset-password', async (req, res) => {
+router.post('/patient-auth/reset-password', authLimiter, async (req, res) => {
   const { token, new_password } = req.body;
   if (!token || !new_password || new_password.length < 6) {
     return res.status(400).json({ error: 'Token y una contraseña de al menos 6 caracteres son requeridos' });
@@ -240,7 +238,7 @@ router.get('/patient/appointments/:id/payment', requirePatientAuth, async (req, 
 
     const amountInCents = Math.round(Number(amount) * 100);
     const wompiReady = isWompiReady();
-    const redirectUrl = `${FRONTEND_URL}/pagar?ref=${reference}`;
+    const redirectUrl = `${getBaseUrl(req)}/pagar?ref=${reference}`;
     const checkoutUrl = wompiReady ? buildWompiUrl({ reference, amountInCents, redirectUrl }) : redirectUrl;
     const qrDataUrl = await QRCode.toDataURL(checkoutUrl, { margin: 1, width: 320 });
 

@@ -6,10 +6,10 @@ const { buildWompiUrl, isWompiReady, verifyWompiWebhook } = require('../utils/wo
 const { sendWhatsApp } = require('../utils/whatsapp');
 
 const router = express.Router();
+const { getBaseUrl } = require('../utils/urls');
 
-const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
-
-async function buildCheckout(appointmentId, amount, reference) {
+async function buildCheckout(req, appointmentId, amount, reference) {
+  const FRONTEND_URL = getBaseUrl(req);
   const amountInCents = Math.round(Number(amount) * 100);
   const wompiReady = isWompiReady();
   const redirectUrl = `${FRONTEND_URL}/pagar?ref=${reference}`;
@@ -51,7 +51,7 @@ router.post('/admin/payments/charge', requireAuth, async (req, res) => {
       [amount, appointment_id]
     );
 
-    const { checkoutUrl, qrDataUrl, wompiReady } = await buildCheckout(appointment_id, amount, reference);
+    const { checkoutUrl, qrDataUrl, wompiReady } = await buildCheckout(req, appointment_id, amount, reference);
 
     // Le mandamos el link de pago por WhatsApp al paciente (no bloquea la respuesta si falla).
     const { rows: patientRows } = await pool.query(

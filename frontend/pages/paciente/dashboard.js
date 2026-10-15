@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import PanelNav from '../../components/PanelNav';
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'https://dr-jimenez-platform.onrender.com';
+const BACKEND_URL = (typeof window !== 'undefined' && window.location.hostname && !['localhost', '127.0.0.1'].includes(window.location.hostname)) ? `http://${window.location.hostname}:4000` : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000');
 const USD_RATE = 4000;
 
 const STATUS_LABEL = { pending: 'Pendiente', confirmed: 'Confirmada', completed: 'Completada', cancelled: 'Cancelada' };
@@ -32,7 +32,7 @@ export default function PatientDashboard() {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch(`${BACKEND_URL}/api/patient/appointments`, { headers: { Authorization: `Bearer ${token}` } });
+      const res = await fetch(`/api/patient/appointments`, { headers: { Authorization: `Bearer ${token}` } });
       if (res.status === 401 || res.status === 403) { localStorage.removeItem('patient_token'); router.replace('/paciente/login'); return; }
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Error al cargar tus citas');
@@ -53,7 +53,7 @@ export default function PatientDashboard() {
   async function cancelAppointment(id) {
     if (!confirm('¿Cancelar esta cita?')) return;
     try {
-      const res = await fetch(`${BACKEND_URL}/api/patient/appointments/${id}/cancel`, { method: 'PATCH', headers: { Authorization: `Bearer ${getToken()}` } });
+      const res = await fetch(`/api/patient/appointments/${id}/cancel`, { method: 'PATCH', headers: { Authorization: `Bearer ${getToken()}` } });
       if (!res.ok) throw new Error((await res.json()).error || 'No se pudo cancelar');
       loadAppointments();
     } catch (err) {
@@ -65,7 +65,7 @@ export default function PatientDashboard() {
     setPayingId(id);
     setPaymentInfo(null);
     try {
-      const res = await fetch(`${BACKEND_URL}/api/patient/appointments/${id}/payment`, { headers: { Authorization: `Bearer ${getToken()}` } });
+      const res = await fetch(`/api/patient/appointments/${id}/payment`, { headers: { Authorization: `Bearer ${getToken()}` } });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'No se pudo generar el pago');
       setPaymentInfo(data);

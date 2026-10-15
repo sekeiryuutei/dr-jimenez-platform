@@ -4,6 +4,7 @@ const path = require('path');
 const fs = require('fs');
 const pool = require('../db/pool');
 const requireAuth = require('../middleware/requireAuth');
+const { imageFileFilter } = require('../middleware/security');
 
 const router = express.Router();
 const UPLOADS_ROOT = path.join(__dirname, '../../uploads');
@@ -20,14 +21,9 @@ function makeStorage(subfolder) {
   });
 }
 
-const imageFilter = (req, file, cb) => {
-  if (!file.mimetype.startsWith('image/')) return cb(new Error('Solo se permiten imágenes'));
-  cb(null, true);
-};
-
-const uploadService = multer({ storage: makeStorage('services'), fileFilter: imageFilter, limits: { fileSize: 5 * 1024 * 1024 } });
-const uploadGallery = multer({ storage: makeStorage('gallery'), fileFilter: imageFilter, limits: { fileSize: 5 * 1024 * 1024 } });
-const uploadTransformation = multer({ storage: makeStorage('transformations'), fileFilter: imageFilter, limits: { fileSize: 5 * 1024 * 1024 } });
+const uploadService = multer({ storage: makeStorage('services'), fileFilter: imageFileFilter, limits: { fileSize: 5 * 1024 * 1024 } });
+const uploadGallery = multer({ storage: makeStorage('gallery'), fileFilter: imageFileFilter, limits: { fileSize: 5 * 1024 * 1024 } });
+const uploadTransformation = multer({ storage: makeStorage('transformations'), fileFilter: imageFileFilter, limits: { fileSize: 5 * 1024 * 1024 } });
 
 // POST /api/admin/services/:id/image -> reemplaza la foto de un servicio (protegido)
 router.post('/admin/services/:id/image', requireAuth, uploadService.single('image'), async (req, res) => {

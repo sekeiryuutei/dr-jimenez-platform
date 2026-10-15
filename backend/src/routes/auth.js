@@ -1,13 +1,14 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { authLimiter } = require('../middleware/security');
 
 const router = express.Router();
 
 // POST /api/auth/login -> el doctor inicia sesión
 // Por ahora es un único usuario (el doctor), definido por variables de entorno.
 // No hay tabla de usuarios en la base de datos todavía -> más simple y suficiente para el demo.
-router.post('/login', async (req, res) => {
+router.post('/login', authLimiter, async (req, res) => {
   const { email, password } = req.body;
 
   if (!email || !password) {

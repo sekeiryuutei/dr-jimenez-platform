@@ -5,6 +5,23 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dr. Jorge Jiménez — Estética Dental y Facial</title>
 <meta name="description" content="Odontología estética y rejuvenecimiento facial de alta precisión en Cali. Diseño de sonrisa, implantología, armonización facial y más.">
+<link rel="canonical" href="https://dr-jimenez-platform.onrender.com/">
+<meta name="theme-color" content="#0a0a0a">
+<meta name="robots" content="index, follow">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="es_CO">
+<meta property="og:site_name" content="Dr. Jorge Jiménez — Estética Dental y Facial">
+<meta property="og:title" content="Dr. Jorge Jiménez — Estética Dental y Facial en Cali">
+<meta property="og:description" content="Odontología estética y rejuvenecimiento facial de alta precisión en Cali. Diseño de sonrisa, implantología, armonización facial y más. Agenda tu valoración en minutos.">
+<meta property="og:url" content="https://dr-jimenez-platform.onrender.com/">
+<meta property="og:image" content="https://dr-jimenez-platform.onrender.com/images/doctor/jorge.jpeg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Dr. Jorge Jiménez — Estética Dental y Facial en Cali">
+<meta name="twitter:description" content="Diseño de sonrisa, implantología y armonización facial en Cali. Agenda tu valoración en minutos, sin llamadas.">
+<meta name="twitter:image" content="https://dr-jimenez-platform.onrender.com/images/doctor/jorge.jpeg">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"Dentist","name":"Dr. Jorge Jiménez — Estética Dental y Facial","description":"Odontología estética y rejuvenecimiento facial en Cali.","address":{"@type":"PostalAddress","streetAddress":"Centro Comercial Unicentro, Torre Oasis, Consultorio 509A","addressLocality":"Cali","addressCountry":"CO"},"telephone":"+57 311 646 0735","url":"https://dr-jimenez-platform.onrender.com/","sameAs":["https://www.instagram.com/dr.jimenez_/","https://www.facebook.com/people/Dr-Jorge-Jimenez/100075847129287/"]}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -336,7 +353,7 @@
       <a href="#agendar" class="cta-btn" data-i18n="hero.cta">Agendar valoración inicial</a>
     </div>
     <div class="hero-photo-wrap" data-parallax="0.08">
-      <img class="hero-photo" src="/images/doctor/jorge.jpeg" alt="Dr. Jorge Jiménez" onerror="this.style.display='none'">
+      <img class="hero-photo" fetchpriority="high" src="/images/doctor/jorge.jpeg" alt="Dr. Jorge Jiménez" onerror="this.style.display='none'">
       <div class="hero-photo-frame"></div>
     </div>
   </div>
@@ -346,7 +363,7 @@
 <section id="nosotros">
   <div class="watermark" data-parallax="0.15">Confianza</div>
   <div class="container about-wrap">
-    <img class="about-photo reveal" src="/images/doctor/jorge-secundaria.jpeg" alt="Dr. Jorge Jiménez en consulta" onerror="this.style.display='none'">
+    <img loading="lazy" class="about-photo reveal" src="/images/doctor/jorge-secundaria.jpeg" alt="Dr. Jorge Jiménez en consulta" onerror="this.style.display='none'">
     <div class="about-copy reveal">
       <div class="eyebrow" data-i18n="about.eyebrow">Acerca de la empresa</div>
       <h2 data-i18n="about.title">Dr. Jorge Jiménez</h2>
@@ -550,8 +567,10 @@
 <script>
 // URL de tu backend real en Render
 // En local (Docker) habla con tu backend local; en producción, con el de Render.
-const IS_LOCAL = ['localhost', '127.0.0.1'].includes(window.location.hostname);
-const BACKEND_URL = IS_LOCAL ? 'http://localhost:4000' : 'https://dr-jimenez-platform.onrender.com';
+const HOST = window.location.hostname;
+const IS_LOCAL = ['localhost', '127.0.0.1'].includes(HOST);
+const IS_LAN = /^(192\.168\.|10\.|172\.(1[6-9]|2\d|3[01])\.)/.test(HOST);
+const BACKEND_URL = IS_LOCAL ? 'http://localhost:4000' : (IS_LAN ? `http://${HOST}:4000` : (HOST.endsWith('.github.io') ? 'https://dr-jimenez-platform.onrender.com' : ''));
 
 // Detecta si estamos publicados bajo /nombre-del-repo/ (GitHub Pages) o en la raíz (local)
 const SITE_BASE = (function(){
@@ -696,7 +715,7 @@ function renderServices(lang){
     card.className = 'service-card';
     const img = resolveImageUrl(s.image_url);
     card.innerHTML = `
-      <div class="service-img-wrap"><img src="${img}" alt="${s['name_'+lang]}" onerror="this.parentElement.style.background='linear-gradient(155deg,#232323,#151515)'; this.remove();"></div>
+      <div class="service-img-wrap"><img loading="lazy" src="${img}" alt="${s['name_'+lang]}" onerror="this.parentElement.style.background='linear-gradient(155deg,#232323,#151515)'; this.remove();"></div>
       <div class="service-body">
         <h3>${s['name_'+lang]}</h3>
         <p>${s['description_'+lang] || ''}</p>
@@ -781,7 +800,7 @@ function renderGallery(){
   GALLERY_IMAGES.forEach((g, i)=>{
     const item = document.createElement('div');
     item.className = 'gallery-item' + (i < galleryShown ? ' shown' : '');
-    item.innerHTML = `<img src="${resolveImageUrl(g.image_url)}" alt="Caso ${i+1}">`;
+    item.innerHTML = `<img loading="lazy" src="${resolveImageUrl(g.image_url)}" alt="Caso ${i+1}">`;
     grid.appendChild(item);
   });
   btn.style.display = galleryShown >= GALLERY_IMAGES.length ? 'none' : 'inline-block';
@@ -830,8 +849,8 @@ function renderTransformations(items){
     card.className = 'transform-card';
     const caption = t['title_'+currentLang];
     card.innerHTML = `
-      <img class="before-layer" src="${resolveImageUrl(t.before_url)}" alt="Antes">
-      <img class="after-layer" src="${resolveImageUrl(t.after_url)}" alt="Después" style="clip-path:inset(0 0 0 50%);">
+      <img loading="lazy" class="before-layer" src="${resolveImageUrl(t.before_url)}" alt="Antes">
+      <img loading="lazy" class="after-layer" src="${resolveImageUrl(t.after_url)}" alt="Después" style="clip-path:inset(0 0 0 50%);">
       <span class="transform-tag before" data-i18n="transform.before">Antes</span>
       <span class="transform-tag after" data-i18n="transform.after">Después</span>
       <div class="transform-handle" style="left:50%;"></div>
@@ -1051,7 +1070,7 @@ function renderBlog(){
     const excerpt = post['excerpt_'+currentLang] || '';
     const date = new Date(post.created_at).toLocaleDateString(currentLang === 'es' ? 'es-CO' : 'en-US', {year:'numeric', month:'long', day:'numeric'});
     card.innerHTML = `
-      <div class="blog-img">${post.image_url ? `<img src="${resolveImageUrl(post.image_url)}" alt="${title}">` : ''}</div>
+      <div class="blog-img">${post.image_url ? `<img loading="lazy" src="${resolveImageUrl(post.image_url)}" alt="${title}">` : ''}</div>
       <div class="blog-body">
         <div class="blog-date">${date}</div>
         <h3>${title}</h3>
@@ -1078,7 +1097,7 @@ async function openBlogPost(slug){
     const body = post['content_'+currentLang];
     const date = new Date(post.created_at).toLocaleDateString(currentLang === 'es' ? 'es-CO' : 'en-US', {year:'numeric', month:'long', day:'numeric'});
     content.innerHTML = `
-      ${post.image_url ? `<img class="blog-overlay-img" src="${resolveImageUrl(post.image_url)}" alt="${title}">` : ''}
+      ${post.image_url ? `<img loading="lazy" class="blog-overlay-img" src="${resolveImageUrl(post.image_url)}" alt="${title}">` : ''}
       <div class="blog-overlay-date">${date}</div>
       <h2>${title}</h2>
       <div class="blog-overlay-content">${body}</div>`;

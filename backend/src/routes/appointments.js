@@ -20,11 +20,18 @@ function generateTempPassword() {
 
 // POST /api/appointments -> agendar la valoración inicial (flujo público)
 // Si la cédula/email no existen todavía, crea la cuenta del paciente y le envía la clave.
-router.post('/', async (req, res) => {
+router.post('/', bookingLimiter, async (req, res) => {
   const { cedula, client_name, client_email, client_phone, service_id, appointment_date, start_time } = req.body;
 
   if (!cedula || !client_name || !client_email || !service_id || !appointment_date || !start_time) {
     return res.status(400).json({ error: 'Faltan campos requeridos (cédula, nombre, email, servicio, fecha, hora)' });
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(client_email)) {
+    return res.status(400).json({ error: 'El correo no tiene un formato válido' });
+  }
+  const todayStr = new Date().toISOString().slice(0, 10);
+  if (appointment_date < todayStr) {
+    return res.status(400).json({ error: 'No se puede agendar en una fecha pasada' });
   }
 
   if (isPastInColombia(appointment_date, start_time)) {

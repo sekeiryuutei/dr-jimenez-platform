@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /doctor/
+Disallow: /paciente/
+Sitemap: https://dr-jimenez-platform.onrender.com/sitemap.xml

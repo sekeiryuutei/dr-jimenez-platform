@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import PanelNav from '../../components/PanelNav';
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'https://dr-jimenez-platform.onrender.com';
+const BACKEND_URL = (typeof window !== 'undefined' && window.location.hostname && !['localhost', '127.0.0.1'].includes(window.location.hostname)) ? `http://${window.location.hostname}:4000` : (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000');
 const USD_RATE = 4000; // Tasa aproximada y fija solo para mostrar el valor en dólares -- no es una tasa en vivo.
 
 function formatMoney(value, currency) {
@@ -31,7 +31,7 @@ export default function Charge() {
     if (!getToken()) { router.replace('/doctor/login'); return; }
     setLoading(true);
     try {
-      const res = await fetch(`${BACKEND_URL}/api/appointments`, { headers: { Authorization: `Bearer ${getToken()}` } });
+      const res = await fetch(`/api/appointments`, { headers: { Authorization: `Bearer ${getToken()}` } });
       if (res.status === 401) { router.replace('/doctor/login'); return; }
       const data = await res.json();
       const uncharged = data
@@ -55,7 +55,7 @@ export default function Charge() {
     setCharge(null);
     try {
       // Ya no se manda "amount": el backend usa el valor que el doctor asignó al completar la cita.
-      const res = await fetch(`${BACKEND_URL}/api/admin/payments/charge`, {
+      const res = await fetch(`/api/admin/payments/charge`, {
         method: 'POST',
         headers: authHeaders(),
         body: JSON.stringify({ appointment_id: Number(appointmentId) }),
@@ -75,7 +75,7 @@ export default function Charge() {
     if (!confirm('¿Confirmas que este paciente ya pagó en efectivo / presencial?')) return;
     setBusy(true);
     try {
-      const res = await fetch(`${BACKEND_URL}/api/appointments/${appointmentId}/mark-paid`, { method: 'PATCH', headers: authHeaders() });
+      const res = await fetch(`/api/appointments/${appointmentId}/mark-paid`, { method: 'PATCH', headers: authHeaders() });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'No se pudo registrar el pago');
       setAppointmentId('');
